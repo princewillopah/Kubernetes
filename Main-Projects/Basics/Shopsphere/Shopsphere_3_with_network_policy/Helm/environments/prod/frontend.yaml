@@ -1,0 +1,5 @@
+frontend:
+  image: princewillopah2/shopsphere-frontend:1.0
+  replicas: 2
+  port: 80
+  nodePort: 30080

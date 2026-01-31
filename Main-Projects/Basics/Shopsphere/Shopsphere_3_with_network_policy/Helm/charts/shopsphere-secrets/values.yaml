@@ -1,0 +1,18 @@
+aws:
+  region: us-east-1
+  secretStoreName: aws-secretstore
+  credentialsSecret: aws-creds
+  accessKeyField: my-access-key
+  secretKeyField: my-secret-access-key
+
+mongo:
+  awsSecretName: ""
+  secretName: mongo-secret
+  usernameKey: mongodb-usr
+  passwordKey: mongodb-pwd
+
+backend:
+  awsSecretName: ""
+  secretName: backend-secret
+  jwtKey: jwt-token
+  mongoUriKey: backend-mongo-uri

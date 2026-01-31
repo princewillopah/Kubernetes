@@ -1,0 +1,26 @@
+# servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: nginx-frontend-monitor
+  namespace: monitoring
+  labels:
+    release: prometheus  # Must match Prometheus selector
+spec:
+  selector:
+    matchLabels:
+      app: nginx-frontend  # Matches your service labels
+  namespaceSelector:
+    matchNames:
+    - xxx  # Where your application lives
+  endpoints:
+  - port: metrics  # Name of the port in your Service
+    interval: 30s
+    path: /metrics
+    honorLabels: true
+    scheme: http
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: pod
+    - sourceLabels: [__meta_kubernetes_namespace]
+      targetLabel: namespace

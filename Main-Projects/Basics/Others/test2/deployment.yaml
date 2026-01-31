@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-nginx
+  namespace: xxx2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-nginx
+  template:
+    metadata:
+      labels:
+        app: frontend-nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.25
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: nginx-status
+              mountPath: /etc/nginx/conf.d
+        - name: nginx-exporter
+          image: nginx/nginx-prometheus-exporter:1.1.0
+          args:
+            - "-nginx.scrape-uri=http://127.0.0.1/nginx_status"
+          ports:
+            - containerPort: 9113
+      volumes:
+        - name: nginx-status
+          configMap:
+            name: nginx-status-config

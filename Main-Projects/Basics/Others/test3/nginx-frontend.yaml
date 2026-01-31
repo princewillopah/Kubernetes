@@ -1,0 +1,154 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-frontend
+  namespace: xxx
+  labels:
+    app: nginx-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx-frontend
+  template:
+    metadata:
+      labels:
+        app: nginx-frontend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9113"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        - containerPort: 9113
+        volumeMounts:
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: stub-status-config
+          mountPath: /etc/nginx/conf.d/stub_status.conf
+          subPath: stub_status.conf
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+      - name: nginx-exporter
+        image: nginx/nginx-prometheus-exporter:latest
+        args:
+          - '-nginx.scrape-uri=http://localhost:9113/stub_status'
+        ports:
+        - containerPort: 9113
+        resources:
+          requests:
+            memory: "32Mi"
+            cpu: "100m"
+          limits:
+            memory: "64Mi"
+            cpu: "200m"
+      volumes:
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+      - name: stub-status-config
+        configMap:
+          name: nginx-stub-status
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: xxx
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes auto;
+    error_log /var/log/nginx/error.log warn;
+    pid /var/run/nginx.pid;
+    
+    events {
+      worker_connections 1024;
+      use epoll;
+      multi_accept on;
+    }
+    
+    http {
+      include /etc/nginx/mime.types;
+      default_type application/octet-stream;
+      
+      log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" "$http_user_agent" '
+                      '"$http_x_forwarded_for"';
+      
+      access_log /var/log/nginx/access.log main;
+      
+      sendfile on;
+      tcp_nopush on;
+      tcp_nodelay on;
+      keepalive_timeout 65;
+      types_hash_max_size 2048;
+      
+      include /etc/nginx/conf.d/*.conf;
+      
+      server {
+        listen 80;
+        server_name _;
+        
+        location / {
+          root /usr/share/nginx/html;
+          index index.html index.htm;
+        }
+        
+        location /health {
+          access_log off;
+          return 200 "healthy\n";
+          add_header Content-Type text/plain;
+        }
+      }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-stub-status
+  namespace: xxx
+data:
+  stub_status.conf: |
+    server {
+      listen 9113;
+      server_name localhost;
+      
+      access_log off;
+      
+      location /stub_status {
+        stub_status on;
+        allow 127.0.0.1;
+        deny all;
+      }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-frontend-service
+  namespace: xxx
+  labels:
+    app: nginx-frontend
+spec:
+  selector:
+    app: nginx-frontend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  - name: metrics
+    port: 9113
+    targetPort: 9113
+  type: ClusterIP

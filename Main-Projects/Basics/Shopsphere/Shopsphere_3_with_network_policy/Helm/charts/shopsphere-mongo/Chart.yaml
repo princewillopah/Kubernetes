@@ -1,0 +1,6 @@
+apiVersion: v2
+name: shopsphere-mongo
+type: application
+version: 1.0.0
+
+
