@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pod-b
+  namespace: net-test
+spec:
+  selector:
+    run: pod-b
+  ports:
+    - port: 80
+      targetPort: 80

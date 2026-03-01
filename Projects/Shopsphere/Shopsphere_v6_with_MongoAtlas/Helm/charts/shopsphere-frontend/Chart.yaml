@@ -1,0 +1,6 @@
+apiVersion: v2
+name: shopsphere-frontend
+type: application
+version: 1.0.0
+description: React frontend service for Shopsphere application
+appVersion: "1.0.0"

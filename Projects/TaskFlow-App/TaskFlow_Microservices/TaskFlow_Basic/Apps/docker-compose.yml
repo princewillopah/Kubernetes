@@ -1,0 +1,110 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: taskflow-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - taskflow-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: taskflow-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - taskflow-network
+
+  task-service:
+    build: ./services/task-service
+    container_name: taskflow-task-service
+    ports:
+      - "3001:3001"
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/taskflow
+      REDIS_HOST: redis
+    networks:
+      - taskflow-network
+    depends_on:
+      - mongodb
+      - redis
+
+  user-service:
+    build: ./services/user-service
+    container_name: taskflow-user-service
+    ports:
+      - "3002:3002"
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/taskflow
+      JWT_SECRET: your-secret-key-change-in-production
+    networks:
+      - taskflow-network
+    depends_on:
+      - mongodb
+
+  notification-service:
+    build: ./services/notification-service
+    container_name: taskflow-notification-service
+    ports:
+      - "3003:3003"
+    environment:
+      REDIS_HOST: redis
+    networks:
+      - taskflow-network
+    depends_on:
+      - redis
+
+  analytics-service:
+    build: ./services/analytics-service
+    container_name: taskflow-analytics-service
+    ports:
+      - "3004:3004"
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/taskflow
+    networks:
+      - taskflow-network
+    depends_on:
+      - mongodb
+
+  api-gateway:
+    build: ./services/api-gateway
+    container_name: taskflow-api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      TASK_SERVICE_URL: http://task-service:3001
+      USER_SERVICE_URL: http://user-service:3002
+      NOTIFICATION_SERVICE_URL: http://notification-service:3003
+      ANALYTICS_SERVICE_URL: http://analytics-service:3004
+    networks:
+      - taskflow-network
+    depends_on:
+      - task-service
+      - user-service
+      - notification-service
+      - analytics-service
+
+  frontend:
+    build: 
+      context: ./frontend  # Change this to point to frontend folder
+      dockerfile: Dockerfile
+    container_name: taskflow-frontend
+    ports:
+      - "80:80"
+    networks:
+      - taskflow-network
+    depends_on:
+      - api-gateway
+    restart: unless-stopped
+
+networks:
+  taskflow-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+  redis_data:

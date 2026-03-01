@@ -1,0 +1,29 @@
+environments:
+  prod: {}
+  
+---
+
+releases:
+  - name: shopsphere-secrets
+    namespace: shopsphere
+    chart: ./charts/shopsphere-secrets
+    values:
+      - ./environments/prod/secrets.yaml
+
+  - name: shopsphere-mongo
+    namespace: shopsphere
+    chart: ./charts/shopsphere-mongo
+    values:
+      - ./environments/prod/mongo.yaml
+
+  - name: shopsphere-backend
+    namespace: shopsphere
+    chart: ./charts/shopsphere-backend
+    values:
+      - ./environments/prod/backend.yaml
+
+  - name: shopsphere-frontend
+    namespace: shopsphere
+    chart: ./charts/shopsphere-frontend
+    values:
+      - ./environments/prod/frontend.yaml

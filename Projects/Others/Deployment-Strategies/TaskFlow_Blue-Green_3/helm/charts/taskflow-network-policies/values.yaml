@@ -1,0 +1,5 @@
+namespace: shopsphere
+# podSelector: {}
+# policyTypes:
+#   - Ingress
+#   - Egress

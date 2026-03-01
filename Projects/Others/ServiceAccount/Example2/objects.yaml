@@ -1,0 +1,42 @@
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pod-reader
+  namespace: demo-service-account
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-read-role
+  namespace: demo-service-account
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get","list","watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-read-binding
+  namespace: demo-service-account
+subjects:
+- kind: ServiceAccount
+  name: pod-reader
+  namespace: demo-service-account
+roleRef:
+  kind: Role
+  name: pod-read-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api-test
+  namespace: demo-service-account
+spec:
+  serviceAccountName: pod-reader
+  containers:
+  - name: test
+    image: curlimages/curl:8.5.0
+    command: ["sleep","3600"]

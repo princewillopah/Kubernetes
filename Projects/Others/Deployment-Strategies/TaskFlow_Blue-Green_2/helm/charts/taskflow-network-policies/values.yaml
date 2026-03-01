@@ -1,0 +1,20 @@
+# namespace: shopsphere
+# podSelector: {}
+# policyTypes:
+#   - Ingress
+#   - Egress
+
+backend:
+  ports: 3000
+
+mongodb:
+  ports: 27017
+
+frontend:
+  ports: 5000
+
+node-exporter:
+  ports: 9113
+
+mongo-exporter:
+  ports: 9216

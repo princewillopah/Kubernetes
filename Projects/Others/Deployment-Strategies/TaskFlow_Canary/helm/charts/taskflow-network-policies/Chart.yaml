@@ -1,0 +1,4 @@
+apiVersion: v2
+name: taskflow-network-policies
+type: application
+version: 1.0.0

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: shopsphere-backend
+type: application
+version: 1.0.0
+description: MERN backend service for Shopsphere application
+appVersion: "1.0.0"

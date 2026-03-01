@@ -1,0 +1,96 @@
+---
+# Ingress for HTTP/HTTPS traffic
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ecommerce-ingress
+  namespace: ecommerce
+  annotations:
+    # Nginx Ingress Controller
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Uncomment for SSL
+    
+    # CORS settings
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "Content-Type, Authorization"
+    
+    # Rate limiting (optional)
+    # nginx.ingress.kubernetes.io/limit-rps: "100"
+spec:
+  ingressClassName: nginx  # or "traefik" depending on your cluster
+  
+  # TLS configuration (uncomment when you have cert-manager)
+  # tls:
+  # - hosts:
+  #   - ecommerce.yourdomain.com
+  #   secretName: ecommerce-tls
+  
+  rules:
+  # Frontend (main domain)
+  - host: ecommerce.yourdomain.com  # CHANGE THIS
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 80
+      
+      # API Gateway (same domain, /api path)
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 3000
+
+---
+# Alternative: LoadBalancer Service (for cloud providers)
+# Use this if you don't have Ingress Controller
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-loadbalancer
+  namespace: ecommerce
+  annotations:
+    # AWS
+    # service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    # GCP
+    # cloud.google.com/load-balancer-type: "Internal"
+    # Azure
+    # service.beta.kubernetes.io/azure-load-balancer-internal: "false"
+spec:
+  type: LoadBalancer
+  selector:
+    app: frontend
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+    name: http
+  - port: 443
+    targetPort: 80
+    protocol: TCP
+    name: https
+
+---
+# API Gateway LoadBalancer (if using separate LB)
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-loadbalancer
+  namespace: ecommerce
+spec:
+  type: LoadBalancer
+  selector:
+    app: api-gateway
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: luxe-observability
+  labels:
+    name: luxe-observability
+    app.kubernetes.io/part-of: luxecart

@@ -1,0 +1,20 @@
+# image: mongo:6
+# port: 27017
+# storage: 5Gi
+# secretName: mongo-secret
+# usernameKey: mongodb-usr
+# passwordKey: mongodb-pwd
+
+namespace: shopsphere
+
+mongo:
+  image: mongo:6
+  port: 27017
+  storage: 5Gi
+
+secrets:
+  mongo:
+    secretName: mongo-secret
+    mappings:
+      - secretKey: mongodb-usr
+      - secretKey: mongodb-pwd

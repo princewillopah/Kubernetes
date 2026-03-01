@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: mongo
+spec:
+  clusterIP: None
+  selector:
+    app: mongo
+  ports:
+    - name: mongodb
+      port: 27017
+      targetPort: 27017
+    - name: metrics
+      port: 9216
+      targetPort: 9216
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: mongo
+#   namespace: {{ .Values.namespace }}
+#   labels:
+#     app: mongodb-exporter #mongo
+# spec:
+#   clusterIP: None
+#   selector:
+#     app: mongodb-exporter #mongo
+#   ports:
+#     - name: metrics                  # MUST match ServiceMonitor
+#       targetPort: {{ .Values.mongo.port }}

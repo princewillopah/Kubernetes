@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: luxe-infra
+  labels:
+    name: luxe-infra
+    app.kubernetes.io/part-of: luxecart

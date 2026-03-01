@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-green
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: backend
+    color: green
+spec:
+  type: ClusterIP
+  selector:
+    app: backend
+    color: green
+  ports:
+    - name: http
+      port: {{ .Values.backend.port }}
+      targetPort: {{ .Values.backend.port }}

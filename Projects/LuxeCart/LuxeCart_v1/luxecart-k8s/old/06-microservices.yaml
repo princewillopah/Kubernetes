@@ -1,0 +1,513 @@
+# This file contains ALL microservice deployments
+# Each service follows the same pattern with different names/ports
+
+---
+# User Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: ecommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done;']
+      containers:
+      - name: user-service
+        image: your-registry/ecommerce-user-service:latest
+        ports:
+        - containerPort: 3002
+        env:
+        - name: PORT
+          value: "3002"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: DATABASE_URL
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: JWT_SECRET
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: ecommerce
+spec:
+  type: ClusterIP
+  selector:
+    app: user-service
+  ports:
+  - port: 3002
+    targetPort: 3002
+
+---
+# Product Service (with Redis)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+  namespace: ecommerce
+spec:
+  replicas: 3  # More replicas for high traffic
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      initContainers:
+      - name: wait-for-deps
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nc -z postgres 5432 && nc -z redis 6379; do echo waiting; sleep 2; done;']
+      containers:
+      - name: product-service
+        image: your-registry/ecommerce-product-service:latest
+        ports:
+        - containerPort: 3003
+        env:
+        - name: PORT
+          value: "3003"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: REDIS_URL
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "400m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  namespace: ecommerce
+spec:
+  type: ClusterIP
+  selector:
+    app: product-service
+  ports:
+  - port: 3003
+    targetPort: 3003
+
+---
+# Cart Service (with Redis)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-service
+  namespace: ecommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cart-service
+  template:
+    metadata:
+      labels:
+        app: cart-service
+    spec:
+      initContainers:
+      - name: wait-for-redis
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nc -z redis 6379; do echo waiting for redis; sleep 2; done;']
+      containers:
+      - name: cart-service
+        image: your-registry/ecommerce-cart-service:latest
+        ports:
+        - containerPort: 3004
+        env:
+        - name: PORT
+          value: "3004"
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: REDIS_URL
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart-service
+  namespace: ecommerce
+spec:
+  type: ClusterIP
+  selector:
+    app: cart-service
+  ports:
+  - port: 3004
+    targetPort: 3004
+
+---
+# Order Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: ecommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting; sleep 2; done;']
+      containers:
+      - name: order-service
+        image: your-registry/ecommerce-order-service:latest
+        ports:
+        - containerPort: 3005
+        env:
+        - name: PORT
+          value: "3005"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: DATABASE_URL
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: ecommerce
+spec:
+  type: ClusterIP
+  selector:
+    app: order-service
+  ports:
+  - port: 3005
+    targetPort: 3005
+
+---
+# Review Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: review-service
+  namespace: ecommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: review-service
+  template:
+    metadata:
+      labels:
+        app: review-service
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting; sleep 2; done;']
+      containers:
+      - name: review-service
+        image: your-registry/ecommerce-review-service:latest
+        ports:
+        - containerPort: 3006
+        env:
+        - name: PORT
+          value: "3006"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: DATABASE_URL
+        - name: RATING_SERVICE_URL
+          value: "http://rating-service:3007"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: review-service
+  namespace: ecommerce
+spec:
+  type: ClusterIP
+  selector:
+    app: review-service
+  ports:
+  - port: 3006
+    targetPort: 3006
+
+---
+# Rating Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rating-service
+  namespace: ecommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rating-service
+  template:
+    metadata:
+      labels:
+        app: rating-service
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting; sleep 2; done;']
+      containers:
+      - name: rating-service
+        image: your-registry/ecommerce-rating-service:latest
+        ports:
+        - containerPort: 3007
+        env:
+        - name: PORT
+          value: "3007"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: DATABASE_URL
+        - name: PRODUCT_SERVICE_URL
+          value: "http://product-service:3003"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rating-service
+  namespace: ecommerce
+spec:
+  type: ClusterIP
+  selector:
+    app: rating-service
+  ports:
+  - port: 3007
+    targetPort: 3007
+
+---
+# Payment Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+  namespace: ecommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: payment-service
+  template:
+    metadata:
+      labels:
+        app: payment-service
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting; sleep 2; done;']
+      containers:
+      - name: payment-service
+        image: your-registry/ecommerce-payment-service:latest
+        ports:
+        - containerPort: 3008
+        env:
+        - name: PORT
+          value: "3008"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: DATABASE_URL
+        - name: ORDER_SERVICE_URL
+          value: "http://order-service:3005"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service
+  namespace: ecommerce
+spec:
+  type: ClusterIP
+  selector:
+    app: payment-service
+  ports:
+  - port: 3008
+    targetPort: 3008
+
+---
+# Notification Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: ecommerce
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting; sleep 2; done;']
+      containers:
+      - name: notification-service
+        image: your-registry/ecommerce-notification-service:latest
+        ports:
+        - containerPort: 3009
+        env:
+        - name: PORT
+          value: "3009"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: DATABASE_URL
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: ecommerce
+spec:
+  type: ClusterIP
+  selector:
+    app: notification-service
+  ports:
+  - port: 3009
+    targetPort: 3009
+
+---
+# Admin Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-service
+  namespace: ecommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: admin-service
+  template:
+    metadata:
+      labels:
+        app: admin-service
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox:1.35
+        command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting; sleep 2; done;']
+      containers:
+      - name: admin-service
+        image: your-registry/ecommerce-admin-service:latest
+        ports:
+        - containerPort: 3010
+        env:
+        - name: PORT
+          value: "3010"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: DATABASE_URL
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-service
+  namespace: ecommerce
+spec:
+  type: ClusterIP
+  selector:
+    app: admin-service
+  ports:
+  - port: 3010
+    targetPort: 3010

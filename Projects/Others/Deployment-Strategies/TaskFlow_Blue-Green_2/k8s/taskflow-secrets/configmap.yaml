@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: {{ .Values.namespace }}
+data:
+  mongo-database: shopsphereDB
+  port: "5000"
+  cors-origin: "*"
+  mongo-auth-source: admin
+  node-env: production

@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all
+  namespace: net-test
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+
+
+
+
+
+
+# Apply:
+# 	kubectl apply -f deny.yaml
+# Test again:
+# 	kubectl exec -n net-test pod-a -- ping pod-b
+
+# Must FAIL — proves NetworkPolicy is enforced.

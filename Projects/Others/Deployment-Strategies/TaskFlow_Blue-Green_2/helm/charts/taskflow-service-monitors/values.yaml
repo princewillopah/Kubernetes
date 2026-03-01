@@ -1,0 +1,9 @@
+monitor-namespace: observability
+app-namespace: taskflow-ns
+app-name:
+  backend: backend
+  frontend: frontend
+  mongo: mongo
+
+
+
