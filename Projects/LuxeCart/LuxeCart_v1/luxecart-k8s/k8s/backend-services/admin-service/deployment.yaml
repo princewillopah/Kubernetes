@@ -4,7 +4,7 @@ metadata:
   name: admin-service
   namespace: luxe-backend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: admin-service
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: admin-service
-        image: princewillopah2/luxecart-admin-service:1.0.0
+        image: princewillopah2/luxecart-admin-service:1.0.4
         imagePullPolicy: Always
         ports:
         - containerPort: 3010
@@ -28,21 +28,25 @@ spec:
 
         resources:
           requests:
-            cpu: 100m
+            cpu: 50m
             memory: 128Mi
           limits:
-            cpu: 500m
-            memory: 512Mi
+            cpu: 100m
+            memory: 256Mi
         readinessProbe:
           httpGet:
             path: /health
             port: 3010
-          initialDelaySeconds: 10
-          periodSeconds: 5
+          initialDelaySeconds: 40
+          periodSeconds: 30
+          timeoutSeconds: 25
+          failureThreshold: 15
         livenessProbe:
           httpGet:
             path: /health
             port: 3010
-          initialDelaySeconds: 20
-          periodSeconds: 10
+          initialDelaySeconds: 40
+          periodSeconds: 30
+          timeoutSeconds: 25
+          failureThreshold: 15
 

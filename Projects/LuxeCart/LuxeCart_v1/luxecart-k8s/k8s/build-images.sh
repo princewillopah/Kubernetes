@@ -114,42 +114,79 @@ echo ""
 
 
 echo ""
-echo "☸️  Deploying to Kubernetes..."
-kubectl create namespace taskflow --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply -f k8s/secrets/ -n taskflow
-kubectl apply -f k8s/configmaps/ -n taskflow
-kubectl apply -f k8s/deployments/mongodb.yaml -n taskflow
-kubectl apply -f k8s/deployments/redis.yaml -n taskflow
-echo ""
-
-echo "⏳ Waiting for databases..."
-kubectl wait --for=condition=ready pod -l app=mongodb -n taskflow --timeout=120s
-echo ""
-echo "⏳ Waiting for redis..."
-kubectl wait --for=condition=ready pod -l app=redis -n taskflow --timeout=120s
-echo ""
-echo "⏳ deploying services..."
-kubectl apply -f k8s/deployments/ -n taskflow
-
+echo " ================================================================= "
+echo "📦 Deploying Backend secrets"
+echo " ================================================================= "
+# kubectl create namespace taskflow --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -f config/ -n luxe-backend
 
 echo ""
-echo "✅ Deployment complete!"
-echo "waiting for services to be ready..."
-kubectl wait --for=condition=ready pod -l app=task-service -n taskflow --timeout=120s
-kubectl wait --for=condition=ready pod -l app=user-service -n taskflow --timeout=120s
-kubectl wait --for=condition=ready pod -l app=notification-service -n taskflow --timeout=120s
-kubectl wait --for=condition=ready pod -l app=analytics-service -n taskflow --timeout=120s
-kubectl wait --for=condition=ready pod -l app=api-gateway -n taskflow --timeout=120s
-kubectl wait --for=condition=ready pod -l app=frontend -n taskflow --timeout=120s
+echo " ================================================================= "
+echo "📦 Deploying Backend Services"
+echo " ================================================================= "
+SERVICES="analytics-service recommendation-service email-service auth-service user-service product-service cart-service order-service review-service rating-service payment-service notification-service admin-service inventory-service search-service api-gateway-service frontend"
+
+for service in $SERVICES; do
+# Set build context for frontend
+  dir="./backend-services/$service"
+
+  echo "Building $service..."
+  kubectl apply -f $dir/ -n luxe-backend
+  echo ""
+done
+echo ""
+echo " ================================================================= "
+echo "📦 Deploying Frontend Services"
+echo " ================================================================= "
+echo ""
+kubectl apply -f frontend/ -n luxe-frontend
+echo ""
+
+
+
+echo "Waiting 100 seconds for services to initialize..."
+for i in {100..1}; do
+    printf "\r  ⏳ %02d seconds remaining..." $i
+    sleep 1
+done
+echo ""
+# echo "⏳ Waiting for databases..."
+# kubectl wait --for=condition=ready pod -l app=mongodb -n taskflow --timeout=120s
+# echo ""
+# echo "⏳ Waiting for redis..."
+# kubectl wait --for=condition=ready pod -l app=redis -n taskflow --timeout=120s
+# echo ""
+# echo "⏳ deploying services..."
+# kubectl apply -f k8s/deployments/ -n taskflow
+
+
+# echo ""
+# echo "✅ Deployment complete!"
+# echo "waiting for services to be ready..."
+# kubectl wait --for=condition=ready pod -l app=task-service -n taskflow --timeout=120s
+# kubectl wait --for=condition=ready pod -l app=user-service -n taskflow --timeout=120s
+# kubectl wait --for=condition=ready pod -l app=notification-service -n taskflow --timeout=120s
+# kubectl wait --for=condition=ready pod -l app=analytics-service -n taskflow --timeout=120s
+# kubectl wait --for=condition=ready pod -l app=api-gateway -n taskflow --timeout=120s
+# kubectl wait --for=condition=ready pod -l app=frontend -n taskflow --timeout=120s
 
 echo ""
 echo "📊 Status:"
-kubectl get pods -n taskflow
+kubectl get pods -n luxe-backend
 echo ""
-kubectl get services -n taskflow
+kubectl get services -n luxe-backend
 echo ""
-echo "🌐 Access the app:"
-echo "   kubectl port-forward service/frontend 80:80 -n taskflow"
+kubectl get pods -n luxe-frontend
+echo ""
+echo ""
+kubectl get services -n luxe-frontend
+echo ""
+echo ""
+echo "🌐 Verify and Access the app:"
+echo "   kubectl get pods -n luxe-backend"
+echo "   kubectl get pods -n luxe-frontend"
+echo "   kubectl port-forward service/frontend 80:80 -n luxe-frontend"
+
 
 
 # =================================================================================================

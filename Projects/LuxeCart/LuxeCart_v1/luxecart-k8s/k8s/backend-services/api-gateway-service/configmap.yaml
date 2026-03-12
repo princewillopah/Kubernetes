@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: api-gateway-config
-  namespace: ecommerce
+  namespace: luxe-backend
 data:
   AUTH_SERVICE_URL: "http://auth-service:3001"
   USER_SERVICE_URL: "http://user-service:3002"

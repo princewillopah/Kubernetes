@@ -4,7 +4,7 @@ metadata:
   name: auth-service
   namespace: luxe-backend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: auth-service
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: auth-service
-        image: princewillopah2/luxecart-auth-service:1.0.0
+        image: princewillopah2/luxecart-auth-service:1.0.4
         imagePullPolicy: Always
         ports:
         - containerPort: 3001
@@ -37,21 +37,25 @@ spec:
               key: RABBITMQ_URL
         resources:
           requests:
-            cpu: 100m
+            cpu: 50m
             memory: 128Mi
           limits:
-            cpu: 500m
-            memory: 512Mi
+            cpu: 100m
+            memory: 256Mi
         readinessProbe:
           httpGet:
             path: /health
             port: 3001
-          initialDelaySeconds: 10
-          periodSeconds: 5
+          initialDelaySeconds: 40
+          periodSeconds: 30
+          timeoutSeconds: 25
+          failureThreshold: 15
         livenessProbe:
           httpGet:
             path: /health
             port: 3001
-          initialDelaySeconds: 20
-          periodSeconds: 10
+          initialDelaySeconds: 40
+          periodSeconds: 30
+          timeoutSeconds: 25
+          failureThreshold: 15
 

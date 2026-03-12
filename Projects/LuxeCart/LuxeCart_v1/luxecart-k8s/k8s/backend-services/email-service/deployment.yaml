@@ -4,7 +4,7 @@ metadata:
   name: email-service
   namespace: luxe-backend
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: email-service
@@ -15,16 +15,37 @@ spec:
     spec:
       containers:
       - name: email-service
-        image: princewillopah2/luxecart-email-service:1.0.0
+        image: princewillopah2/luxecart-email-service:1.0.4
         imagePullPolicy: Always
         ports:
         - containerPort: 3015
         env:
-        - name: JWT_SECRET
+        - name: PORT
+          value: "3015"
+        - name: SMTP_HOST
+          value: "smtp.gmail.com"
+        - name: SMTP_PORT
+          value: "587"
+        - name: SMTP_USER
           valueFrom:
             secretKeyRef:
               name: luxecart-auth-secrets
-              key: JWT_SECRET
+              key: SMTP_USER
+        - name: SMTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: luxecart-auth-secrets
+              key: SMTP_PASSWORD
+        - name: FROM_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: luxecart-auth-secrets
+              key: FROM_EMAIL
+        - name: MONGODB_URL
+          valueFrom:
+            secretKeyRef:
+              name: luxecart-auth-secrets
+              key: MONGODB_URL
         - name: DATABASE_URL
           valueFrom:
             secretKeyRef:
@@ -37,21 +58,25 @@ spec:
               key: RABBITMQ_URL
         resources:
           requests:
-            cpu: 100m
+            cpu: 50m
             memory: 128Mi
           limits:
-            cpu: 500m
-            memory: 512Mi
+            cpu: 100m
+            memory: 256Mi
         readinessProbe:
           httpGet:
             path: /health
             port: 3015
-          initialDelaySeconds: 10
-          periodSeconds: 5
+          initialDelaySeconds: 40
+          periodSeconds: 30
+          timeoutSeconds: 25
+          failureThreshold: 15
         livenessProbe:
           httpGet:
             path: /health
             port: 3015
-          initialDelaySeconds: 20
-          periodSeconds: 10
+          initialDelaySeconds: 40
+          periodSeconds: 30
+          timeoutSeconds: 25
+          failureThreshold: 15
 

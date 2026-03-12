@@ -6,7 +6,7 @@ metadata:
   labels:
     app: frontend
 spec:
-  replicas: 2
+  replicas: 1
 
   selector:
     matchLabels:
@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: princewillopah2/luxecart-frontend:1.0.0
+        image: princewillopah2/luxecart-frontend:1.0.4
         imagePullPolicy: Always
 
         ports:
@@ -39,12 +39,16 @@ spec:
           httpGet:
             path: /
             port: 80
-          initialDelaySeconds: 10
-          periodSeconds: 5
+          initialDelaySeconds: 40
+          periodSeconds: 30
+          timeoutSeconds: 25
+          failureThreshold: 15
 
         livenessProbe:
           httpGet:
             path: /
             port: 80
-          initialDelaySeconds: 20
-          periodSeconds: 10
+          initialDelaySeconds: 40
+          periodSeconds: 30
+          timeoutSeconds: 25
+          failureThreshold: 15
