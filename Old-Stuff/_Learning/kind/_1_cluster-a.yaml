@@ -7,7 +7,21 @@ networking:
   disableDefaultCNI: true
 nodes:
   - role: control-plane
+    extraPortMappings:
+    - containerPort: 80
+      hostPort: 80
+      protocol: TCP
+
+    - containerPort: 443
+      hostPort: 443
+      protocol: TCP
+
   - role: worker
+
+# This configuration allows for a single control-plane node and one worker node. 
+# The control-plane node has port mappings for HTTP (80) and HTTPS (443) to allow access to services running in the cluster from the host machine. 
+# The pod subnet and service subnet are defined to ensure proper networking within the cluster.
+
 
 # # run :kind create cluster --config cluster-a.yaml
 
