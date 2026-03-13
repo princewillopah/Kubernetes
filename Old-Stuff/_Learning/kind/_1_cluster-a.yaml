@@ -23,7 +23,8 @@ nodes:
 # The pod subnet and service subnet are defined to ensure proper networking within the cluster.
 
 
-# # run :kind create cluster --config cluster-a.yaml
+# # run :
+  #kind create cluster --config cluster-a.yaml
 
 # # Install Calico only
 # kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.3/manifests/calico.yaml

@@ -26,17 +26,17 @@ spec:
                 name: postgres-secret
           resources:
             requests:
-              cpu: "250m"
-              memory: "256Mi"
+              cpu: "150m"
+              memory: "128Mi"
             limits:
-              cpu: "500m"
-              memory: "512Mi"
+              cpu: "200m"
+              memory: "256Mi"
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data
-            - name: postgres-init
-              mountPath: /docker-entrypoint-initdb.d
-              readOnly: true
+            # - name: postgres-init
+            #   mountPath: /docker-entrypoint-initdb.d
+            #   readOnly: true
           readinessProbe:
             exec:
               command:
@@ -57,10 +57,10 @@ spec:
             periodSeconds: 20
             timeoutSeconds: 5
             failureThreshold: 5
-      volumes:
-        - name: postgres-init
-          configMap:
-            name: postgres-init-schema
+      # volumes:
+      #   - name: postgres-init
+      #     configMap:
+      #       name: postgres-init-schema
   volumeClaimTemplates:
     - metadata:
         name: postgres-data

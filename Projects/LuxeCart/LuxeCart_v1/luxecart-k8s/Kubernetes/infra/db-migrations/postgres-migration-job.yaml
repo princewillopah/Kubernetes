@@ -17,7 +17,11 @@ spec:
             - migrate
           env:
             - name: FLYWAY_URL
-              value: jdbc:postgresql://postgres.luxe-infra.svc.cluster.local:5432/ecommerce
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: FLYWAY_URL
+                  
             - name: FLYWAY_USER
               valueFrom:
                 secretKeyRef:
