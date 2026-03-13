@@ -1,0 +1,109 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: luxe-observability
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    scrape_configs:
+      - job_name: "luxecart-all"
+        static_configs:
+          - targets:
+            - redis-exporter.luxe-infra.svc.cluster.local:9121
+            - postgres-exporter.luxe-infra.svc.cluster.local:9187
+            - mongodb-exporter.luxe-infra.svc.cluster.local:9216
+            - elasticsearch-exporter.luxe-infra.svc.cluster.local:9114
+            - rabbitmq.luxe-infra.svc.cluster.local:15692
+            - api-gateway.luxe-backend.svc.cluster.local:3000
+            - auth-service.luxe-backend.svc.cluster.local:3001
+            - user-service.luxe-backend.svc.cluster.local:3002
+            - product-service.luxe-backend.svc.cluster.local:3003
+            - cart-service.luxe-backend.svc.cluster.local:3004
+            - order-service.luxe-backend.svc.cluster.local:3005
+            - review-service.luxe-backend.svc.cluster.local:3006
+            - rating-service.luxe-backend.svc.cluster.local:3007
+            - payment-service.luxe-backend.svc.cluster.local:3008
+            - notification-service.luxe-backend.svc.cluster.local:3009
+            - admin-service.luxe-backend.svc.cluster.local:3010
+            - inventory-service.luxe-backend.svc.cluster.local:3011
+            - search-service.luxe-backend.svc.cluster.local:3012
+            - analytics-service.luxe-backend.svc.cluster.local:3013
+            - recommendation-service.luxe-backend.svc.cluster.local:3014
+            - email-service.luxe-backend.svc.cluster.local:3015
+            - nginx-exporter.luxe-frontend.svc.cluster.local:9113
+
+
+      - job_name: "prometheus"
+        static_configs:
+          - targets: ["localhost:9090"]
+      - job_name: "redis"
+        static_configs:
+          - targets: ["redis-exporter.luxe-infra.svc.cluster.local:9121"]
+      - job_name: "postgres"
+        static_configs:
+          - targets: ["postgres-exporter.luxe-infra.svc.cluster.local:9187"]
+      - job_name: "mongodb"
+        static_configs:
+          - targets: ["mongodb-exporter.luxe-infra.svc.cluster.local:9216"]
+      - job_name: "elasticsearch"
+        static_configs:
+          - targets: ["elasticsearch-exporter.luxe-infra.svc.cluster.local:9114"]
+      - job_name: "rabbitmq"
+        static_configs:
+          - targets: ["rabbitmq.luxe-infra.svc.cluster.local:15692"]
+
+      - job_name: 'api-gateway'
+        static_configs:
+          - targets: ['api-gateway.luxe-backend.svc.cluster.local:3000']
+      - job_name: 'auth-service'
+        static_configs:
+          - targets: ['auth-service.luxe-backend.svc.cluster.local:3001']
+      - job_name: 'user-service'
+        static_configs:
+          - targets: ['user-service.luxe-backend.svc.cluster.local:3002']
+      - job_name: 'product-service'
+        static_configs:
+          - targets: ['product-service.luxe-backend.svc.cluster.local:3003']
+      - job_name: 'cart-service'
+        static_configs:
+          - targets: ['cart-service.luxe-backend.svc.cluster.local:3004']
+      - job_name: 'order-service'
+        static_configs:
+          - targets: ['order-service.luxe-backend.svc.cluster.local:3005']
+      - job_name: 'review-service'
+        static_configs:
+          - targets: ['review-service.luxe-backend.svc.cluster.local:3006']
+      - job_name: 'rating-service'
+        static_configs:
+          - targets: ['rating-service.luxe-backend.svc.cluster.local:3007']
+      - job_name: 'payment-service'
+        static_configs:
+          - targets: ['payment-service.luxe-backend.svc.cluster.local:3008']
+      - job_name: 'notification-service'
+        static_configs:
+          - targets: ['notification-service.luxe-backend.svc.cluster.local:3009']
+      - job_name: 'admin-service'
+        static_configs:
+          - targets: ['admin-service.luxe-backend.svc.cluster.local:3010']
+      - job_name: 'inventory-service'
+        static_configs:
+          - targets: ['inventory-service.luxe-backend.svc.cluster.local:3011']
+      - job_name: 'search-service'
+        static_configs:
+          - targets: ['search-service.luxe-backend.svc.cluster.local:3012']
+
+      - job_name: 'analytics-service'
+        static_configs:
+          - targets: ['analytics-service.luxe-backend.svc.cluster.local:3013']
+      - job_name: 'recommendation-service'
+        static_configs:
+          - targets: ['recommendation-service.luxe-backend.svc.cluster.local:3014']
+      - job_name: 'email-service'
+        static_configs:
+          - targets: ['email-service.luxe-backend.svc.cluster.local:3015']
+      - job_name: "nginx"
+        static_configs:
+          - targets: ["nginx-exporter.luxe-frontend.svc.cluster.local:9113"]
