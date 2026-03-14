@@ -1,0 +1,212 @@
+# prometheus-values.yaml - Production-grade LuxeCart
+
+# ─── GLOBAL SCRAPE CONFIG ─────────────────────────────────────────────
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# ─── PROMETHEUS SERVER ───────────────────────────────────────────────
+server:
+  enabled: true
+  replicaCount: 1
+  statefulSet:
+    enabled: true
+
+  persistentVolume:
+    enabled: true
+    storageClass: standard
+    size: 5Gi
+    accessModes:
+      - ReadWriteOnce
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+
+  service:
+    type: NodePort
+    nodePort: 30090
+    port: 9090
+
+  livenessProbe:
+    httpGet:
+      path: /-/healthy
+      port: 9090
+    initialDelaySeconds: 60
+    periodSeconds: 20
+    timeoutSeconds: 5
+    failureThreshold: 6
+
+  readinessProbe:
+    httpGet:
+      path: /-/ready
+      port: 9090
+    initialDelaySeconds: 60
+    periodSeconds: 20
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  # ─── ADDITIONAL SCRAPE CONFIGS ─────────────────────────────────────
+  additionalScrapeConfigs:
+    # ─── LUXECART ALL SERVICES ─────────────────────────────────────
+    - job_name: 'luxecart-all'
+      scrape_interval: 15s
+      static_configs:
+        - targets:
+            - redis-exporter.luxe-infra.svc.cluster.local:9121
+            - postgres-exporter.luxe-infra.svc.cluster.local:9187
+            - mongodb-exporter.luxe-infra.svc.cluster.local:9216
+            - elasticsearch-exporter.luxe-infra.svc.cluster.local:9114
+            - rabbitmq.luxe-infra.svc.cluster.local:15692
+            - api-gateway.luxe-backend.svc.cluster.local:3000
+            - auth-service.luxe-backend.svc.cluster.local:3001
+            - user-service.luxe-backend.svc.cluster.local:3002
+            - product-service.luxe-backend.svc.cluster.local:3003
+            - cart-service.luxe-backend.svc.cluster.local:3004
+            - order-service.luxe-backend.svc.cluster.local:3005
+            - review-service.luxe-backend.svc.cluster.local:3006
+            - rating-service.luxe-backend.svc.cluster.local:3007
+            - payment-service.luxe-backend.svc.cluster.local:3008
+            - notification-service.luxe-backend.svc.cluster.local:3009
+            - admin-service.luxe-backend.svc.cluster.local:3010
+            - inventory-service.luxe-backend.svc.cluster.local:3011
+            - search-service.luxe-backend.svc.cluster.local:3012
+            - analytics-service.luxe-backend.svc.cluster.local:3013
+            - recommendation-service.luxe-backend.svc.cluster.local:3014
+            - email-service.luxe-backend.svc.cluster.local:3015
+            - nginx-exporter.luxe-frontend.svc.cluster.local:9113
+      # CRITICAL: Add your custom labels via relabel_configs
+      relabel_configs:
+        # Extract service name from target (before the namespace)
+        - source_labels: [__address__]
+          regex: '([a-z0-9-]+)\.luxe-[a-z]+\.svc\.cluster\.local:\d+'
+          target_label: service
+          replacement: '$1'
+        # Extract namespace from target
+        - source_labels: [__address__]
+          regex: '[a-z0-9-]+\.luxe-([a-z]+)\.svc\.cluster\.local:\d+'
+          target_label: namespace
+          replacement: 'luxe-$1'
+        # Set cluster label
+        - target_label: cluster
+          replacement: kind-luxecart
+        # Map service → tier (your exact logic)
+        - source_labels: [service]
+          regex: 'api-gateway'
+          target_label: tier
+          replacement: gateway
+        - source_labels: [service]
+          regex: '(auth-service|user-service|product-service|cart-service|order-service|review-service|rating-service|payment-service|notification-service|admin-service|inventory-service|search-service)'
+          target_label: tier
+          replacement: business-logic
+        - source_labels: [service]
+          regex: '(analytics-service|recommendation-service|email-service)'
+          target_label: tier
+          replacement: python-services
+        - source_labels: [service]
+          regex: '(postgres|redis|rabbitmq|elasticsearch|mongodb)'
+          target_label: tier
+          replacement: data
+        - source_labels: [service]
+          regex: '(prometheus|grafana|loki|promtail|redis-exporter|nginx-exporter|postgres-exporter|mongodb-exporter|elasticsearch-exporter)'
+          target_label: tier
+          replacement: monitoring
+        - source_labels: [service]
+          regex: 'frontend'
+          target_label: tier
+          replacement: presentation
+        # Set app label from service
+        - source_labels: [service]
+          target_label: app
+          replacement: '$1'
+
+    # ─── PROMETHEUS SELF-MONITORING ────────────────────────────────
+    - job_name: 'prometheus'
+      static_configs:
+        - targets: ['localhost:9090']
+      relabel_configs:
+        - target_label: service
+          replacement: prometheus
+        - target_label: tier
+          replacement: monitoring
+        - target_label: cluster
+          replacement: kind-luxecart
+
+# ─── PUSHGATEWAY ─────────────────────────────────────────────────────
+pushgateway:
+  enabled: true
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 9091
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+# ─── ALERTMANAGER ────────────────────────────────────────────────────
+alertmanager:
+  enabled: true
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+  persistentVolume:
+    enabled: false
+  service:
+    type: ClusterIP
+    port: 9093
+
+# ─── NODE EXPORTER ────────────────────────────────────────────────────
+nodeExporter:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 50Mi
+    limits:
+      cpu: 200m
+      memory: 200Mi
+  service:
+    type: ClusterIP
+
+# ─── KUBE-STATE-METRICS ─────────────────────────────────────────────
+kubeStateMetrics:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 50Mi
+    limits:
+      cpu: 200m
+      memory: 200Mi
+  service:
+    type: ClusterIP
+
+# ─── ADDITIONAL SETTINGS ─────────────────────────────────────────────
+rbac:
+  create: true
+
+serviceAccount:
+  create: true
+
+# Optional extra config reloaders
+serverConfigReloader:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 50Mi
+    limits:
+      cpu: 200m
+      memory: 200Mi

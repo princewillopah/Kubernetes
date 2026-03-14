@@ -3,6 +3,10 @@ kind: Service
 metadata:
   name: payment-service
   namespace: luxe-backend
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "3008"
+    prometheus.io/path: "/metrics"
 spec:
   selector:
     app: payment-service

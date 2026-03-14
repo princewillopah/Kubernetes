@@ -3,6 +3,10 @@ kind: Service
 metadata:
   name: order-service
   namespace: luxe-backend
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "3005"
+    prometheus.io/path: "/metrics"
 spec:
   selector:
     app: order-service

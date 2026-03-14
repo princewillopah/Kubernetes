@@ -1,0 +1,51 @@
+# prometheus-values.yaml
+server:
+  enabled: true
+  statefulSet:
+    enabled: true
+  replicaCount: 1
+
+  persistentVolume:
+    enabled: true
+    storageClass: standard
+    size: 5Gi
+    accessModes:
+      - ReadWriteOnce
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+
+  service:
+    type: NodePort
+    nodePort: 30090
+    port: 9090
+
+  livenessProbe:
+    httpGet:
+      path: /-/healthy
+      port: 9090
+    initialDelaySeconds: 60
+    periodSeconds: 20
+    timeoutSeconds: 5
+    failureThreshold: 6
+
+  readinessProbe:
+    httpGet:
+      path: /-/ready
+      port: 9090
+    initialDelaySeconds: 60
+    periodSeconds: 20
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Use additionalScrapeConfigs for all custom targets
+server:
+  additionalScrapeConfigs:
+    - job_name: 'prometheus'
+      static_configs:
+        - targets: ['localhost:9090']

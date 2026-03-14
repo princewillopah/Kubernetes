@@ -3,6 +3,10 @@ kind: Service
 metadata:
   name: recommendation-service
   namespace: luxe-backend
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "3014"
+    prometheus.io/path: "/metrics"
 spec:
   selector:
     app: recommendation-service

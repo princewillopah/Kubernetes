@@ -3,6 +3,10 @@ kind: Service
 metadata:
   name: cart-service
   namespace: luxe-backend
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "3002"
+    prometheus.io/path: "/metrics"
 spec:
   selector:
     app: cart-service

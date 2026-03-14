@@ -3,8 +3,13 @@ kind: Service
 metadata:
   name: nginx-exporter
   namespace: luxe-frontend
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9113"
+    prometheus.io/path: "/metrics"
   labels:
     app: nginx-exporter
+    tier: presentation
 
 spec:
   selector:

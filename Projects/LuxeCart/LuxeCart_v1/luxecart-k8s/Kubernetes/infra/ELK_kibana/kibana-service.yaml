@@ -3,8 +3,13 @@ kind: Service
 metadata:
   name: kibana
   namespace: luxe-infra
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "5601"
+    prometheus.io/path: "/metrics"
   labels:
     app: kibana
+    tier: infra
 spec:
   selector:
     app: kibana

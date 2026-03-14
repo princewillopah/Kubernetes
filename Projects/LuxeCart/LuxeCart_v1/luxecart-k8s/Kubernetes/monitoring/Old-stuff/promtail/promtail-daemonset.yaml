@@ -1,0 +1,88 @@
+# promtail-daemonset.yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: promtail
+  namespace: luxe-observability
+  labels:
+    app: promtail
+spec:
+  selector:
+    matchLabels:
+      app: promtail
+  template:
+    metadata:
+      labels:
+        app: promtail
+    spec:
+      serviceAccountName: promtail
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: promtail
+          image: grafana/promtail:3.0.0
+          args:
+            - -config.file=/etc/promtail/promtail.yaml
+            - -client.external-labels=hostname=$(HOSTNAME)
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          ports:
+            - containerPort: 9080
+              name: http-metrics
+          volumeMounts:
+            - name: config
+              mountPath: /etc/promtail
+            - name: positions
+              mountPath: /run/promtail
+            - name: varlog
+              mountPath: /var/log
+              readOnly: true
+            - name: varlibkubelet
+              mountPath: /var/lib/kubelet
+              readOnly: true
+            # Optional: CRI socket for enhanced metadata (Kind uses containerd)
+            - name: containerd-socket
+              mountPath: /run/containerd/containerd.sock
+              readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: config
+          configMap:
+            name: promtail-config
+        - name: positions
+          hostPath:
+            path: /run/promtail
+            type: DirectoryOrCreate
+        - name: varlog
+          hostPath:
+            path: /var/log
+            type: Directory
+        - name: varlibkubelet
+          hostPath:
+            path: /var/lib/kubelet
+            type: Directory
+        - name: containerd-socket
+          hostPath:
+            path: /run/containerd/containerd.sock
+            type: Socket

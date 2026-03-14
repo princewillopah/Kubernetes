@@ -3,6 +3,14 @@ kind: Service
 metadata:
   name: redis
   namespace: luxe-infra
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "6379"
+    prometheus.io/path: "/metrics"
+  labels:
+    app: redis
+    tier: data
+
 spec:
   selector:
     app: redis

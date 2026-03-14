@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: prometheus-additional-scrape-configs
+  namespace: luxe-observability
+type: Opaque
+stringData:
+  additional-scrape-configs.yaml: |
+    - job_name: 'luxecart-all'
+      static_configs:
+        - targets:
+            - redis-exporter.luxe-infra.svc.cluster.local:9121
+            - postgres-exporter.luxe-infra.svc.cluster.local:9187
+            - mongodb-exporter.luxe-infra.svc.cluster.local:9216
+            - elasticsearch-exporter.luxe-infra.svc.cluster.local:9114
+            - rabbitmq.luxe-infra.svc.cluster.local:15692
+            - api-gateway.luxe-backend.svc.cluster.local:3000
+            - auth-service.luxe-backend.svc.cluster.local:3001
+            - user-service.luxe-backend.svc.cluster.local:3002
+            - product-service.luxe-backend.svc.cluster.local:3003
+            - cart-service.luxe-backend.svc.cluster.local:3004
+            - order-service.luxe-backend.svc.cluster.local:3005
+            - review-service.luxe-backend.svc.cluster.local:3006
+            - rating-service.luxe-backend.svc.cluster.local:3007
+            - payment-service.luxe-backend.svc.cluster.local:3008
+            - notification-service.luxe-backend.svc.cluster.local:3009
+            - admin-service.luxe-backend.svc.cluster.local:3010
+            - inventory-service.luxe-backend.svc.cluster.local:3011
+            - search-service.luxe-backend.svc.cluster.local:3012
+            - analytics-service.luxe-backend.svc.cluster.local:3013
+            - recommendation-service.luxe-backend.svc.cluster.local:3014
+            - email-service.luxe-backend.svc.cluster.local:3015
+            - nginx-exporter.luxe-frontend.svc.cluster.local:9113

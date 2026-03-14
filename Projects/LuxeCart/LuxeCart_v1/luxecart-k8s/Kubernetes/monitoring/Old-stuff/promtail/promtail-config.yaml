@@ -1,0 +1,98 @@
+# promtail-config.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: promtail-config
+  namespace: luxe-observability
+data:
+  promtail.yaml: |
+    server:
+      http_listen_port: 9080
+      grpc_listen_port: 0
+
+    positions:
+      filename: /run/promtail/positions.yaml
+
+    clients:
+      - url: http://loki.luxe-observability.svc.cluster.local:3100/loki/api/v1/push
+        batchwait: 1s
+        batchsize: 1048576
+        timeout: 10s
+
+    scrape_configs:
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - luxe-backend
+                - luxe-frontend
+                - luxe-infra
+                - luxe-observability
+
+        relabel_configs:
+          # Only Running pods
+          - source_labels: [__meta_kubernetes_pod_phase]
+            action: keep
+            regex: Running
+
+          # Label basics
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: container
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: app
+
+          # Service label: container name preferred
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: service
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: (.+)
+            target_label: service
+            action: replace
+
+          # **Fixed container log path** for Kind + containerd
+          - action: replace
+            source_labels:
+              - __meta_kubernetes_pod_uid
+              - __meta_kubernetes_pod_container_name
+            separator: /
+            replacement: /var/log/pods/$1_$2/*.log
+            target_label: __path__
+
+          # Tier labeling (LuxeCart)
+          - source_labels: [service]
+            regex: api-gateway-service
+            target_label: tier
+            replacement: gateway
+          - source_labels: [service]
+            regex: (auth-service|user-service|product-service|cart-service|order-service|review-service|rating-service|payment-service|notification-service|admin-service|inventory-service|search-service)
+            target_label: tier
+            replacement: business-logic
+          - source_labels: [service]
+            regex: (analytics-service|recommendation-service|email-service)
+            target_label: tier
+            replacement: python-services
+          - source_labels: [service]
+            regex: (postgres|redis|rabbitmq|elasticsearch|mongodb)
+            target_label: tier
+            replacement: data
+          - source_labels: [service]
+            regex: (prometheus|grafana|loki|promtail|redis-exporter|nginx-exporter|postgres-exporter|mongodb-exporter|elasticsearch-exporter)
+            target_label: tier
+            replacement: monitoring
+          - source_labels: [service]
+            regex: frontend
+            target_label: tier
+            replacement: presentation
+
+          # Cluster label
+          - target_label: cluster
+            replacement: kind-luxecart
+
+        # Minimal pipeline: no drops yet
+        pipeline_stages:
+          - cri: {}

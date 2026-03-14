@@ -1,0 +1,223 @@
+# promtail-rbac.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: promtail
+  namespace: luxe-observability
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: promtail
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - nodes/proxy
+      - namespaces
+      - services
+      - endpoints
+      - pods
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: promtail
+subjects:
+  - kind: ServiceAccount
+    name: promtail
+    namespace: luxe-observability
+roleRef:
+  kind: ClusterRole
+  name: promtail
+  apiGroup: rbac.authorization.k8s.io
+---
+# promtail-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: promtail-config
+  namespace: luxe-observability
+data:
+  promtail.yaml: |
+    server:
+      http_listen_port: 9080
+      grpc_listen_port: 0
+      log_level: info
+
+    positions:
+      filename: /run/promtail/positions.yaml
+
+    clients:
+      - url: http://loki.luxe-observability.svc.cluster.local:3100/loki/api/v1/push
+        batchwait: 1s
+        batchsize: 1048576
+        timeout: 10s
+
+    scrape_configs:
+      - job_name: kubernetes-pods
+        pipeline_stages:
+          - cri: {}
+          - labeldrop:
+              - filename
+              - __path__
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - luxe-backend
+                - luxe-frontend
+                - luxe-infra
+                - luxe-observability
+
+        relabel_configs:
+          # Keep only Running pods
+          - source_labels: [__meta_kubernetes_pod_phase]
+            action: keep
+            regex: Running
+
+          # Core labels
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: container
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: app
+
+          # Service label logic
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: service
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: (.+)
+            target_label: service
+            action: replace
+
+          # Tier labeling (unchanged)
+          - source_labels: [service]
+            regex: api-gateway-service
+            target_label: tier
+            replacement: gateway
+          - source_labels: [service]
+            regex: (auth-service|user-service|product-service|cart-service|order-service|review-service|rating-service|payment-service|notification-service|admin-service|inventory-service|search-service)
+            target_label: tier
+            replacement: business-logic
+          - source_labels: [service]
+            regex: (analytics-service|recommendation-service|email-service)
+            target_label: tier
+            replacement: python-services
+          - source_labels: [service]
+            regex: (postgres|redis|rabbitmq|elasticsearch|mongodb)
+            target_label: tier
+            replacement: data
+          - source_labels: [service]
+            regex: (prometheus|grafana|loki|promtail|redis-exporter|nginx-exporter|postgres-exporter|mongodb-exporter|elasticsearch-exporter)
+            target_label: tier
+            replacement: monitoring
+          - source_labels: [service]
+            regex: frontend
+            target_label: tier
+            replacement: presentation
+
+          # Cluster label
+          - target_label: cluster
+            replacement: kind-luxecart
+
+          # Node label
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node
+
+---
+# promtail-daemonset.yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: promtail
+  namespace: luxe-observability
+  labels:
+    app: promtail
+spec:
+  selector:
+    matchLabels:
+      app: promtail
+  template:
+    metadata:
+      labels:
+        app: promtail
+    spec:
+      serviceAccountName: promtail
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: promtail
+          image: grafana/promtail:3.0.0
+          args:
+            - -config.file=/etc/promtail/promtail.yaml
+            - -client.external-labels=hostname=$(HOSTNAME)
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          ports:
+            - containerPort: 9080
+              name: http-metrics
+          volumeMounts:
+            - name: config
+              mountPath: /etc/promtail
+            - name: positions
+              mountPath: /run/promtail
+            - name: varlogpods
+              mountPath: /var/log/pods
+              readOnly: true
+            - name: varlibkubelet
+              mountPath: /var/lib/kubelet
+              readOnly: true
+            - name: containerd-socket
+              mountPath: /run/containerd/containerd.sock
+              readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000  # Explicit group ID
+      volumes:
+        - name: config
+          configMap:
+            name: promtail-config
+        - name: positions
+          emptyDir: {}  # FIXED: No more hostPath permission hell
+          # hostPath:
+          #   path: /run/promtail
+          #   type: DirectoryOrCreate
+        - name: varlogpods
+          hostPath:
+            path: /var/log/pods
+            type: Directory
+        - name: varlibkubelet
+          hostPath:
+            path: /var/lib/kubelet
+            type: Directory
+        - name: containerd-socket
+          hostPath:
+            path: /run/containerd/containerd.sock
+            type: Socket
