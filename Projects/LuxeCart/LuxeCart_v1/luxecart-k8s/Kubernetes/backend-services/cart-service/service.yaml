@@ -5,8 +5,11 @@ metadata:
   namespace: luxe-backend
   annotations:
     prometheus.io/scrape: "true"
-    prometheus.io/port: "3002"
+    prometheus.io/port: "3004"
     prometheus.io/path: "/metrics"
+  labels:
+    app: cart-service
+    tier: business-logic
 spec:
   selector:
     app: cart-service

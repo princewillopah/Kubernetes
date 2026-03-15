@@ -1,19 +1,20 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: redis-exporter
+  name: elasticsearch-exporter
   namespace: luxe-infra
   annotations:
     prometheus.io/scrape: "true"
-    prometheus.io/exporter: "true"
-    prometheus.io/port: "9121"
+    prometheus.io/port: "9114"
     prometheus.io/path: "/metrics"
   labels:
-    app: redis-exporter
+    app: elasticsearch-exporter
     tier: monitoring
+
 spec:
   selector:
-    app: redis-exporter
+    app: elasticsearch-exporter
   ports:
-    - port: 9121
-      targetPort: 9121
+  - name: metrics
+    port: 9114
+    targetPort: 9114

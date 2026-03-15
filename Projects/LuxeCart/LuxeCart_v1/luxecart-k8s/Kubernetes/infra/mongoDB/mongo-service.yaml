@@ -3,6 +3,10 @@ kind: Service
 metadata:
   name: mongodb
   namespace: luxe-infra
+  labels:
+    app: mongodb
+    tier: data
+
 spec:
   selector:
     app: mongodb

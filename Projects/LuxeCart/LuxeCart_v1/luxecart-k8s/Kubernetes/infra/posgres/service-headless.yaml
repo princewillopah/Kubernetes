@@ -3,6 +3,9 @@ kind: Service
 metadata:
   name: postgres-headless
   namespace: luxe-infra
+  labels:
+    app: postgres
+    tier: data
 spec:
   clusterIP: None
   selector:

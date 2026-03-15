@@ -1,0 +1,36 @@
+# frontend-servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: luxecart-frontend
+  namespace: luxe-observability
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchExpressions:
+      - key: app
+        operator: Exists
+  namespaceSelector:
+    matchNames:
+      - luxe-frontend
+  endpoints:
+    - port: metrics
+      interval: 15s
+      path: /metrics
+      scheme: http
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+        - sourceLabels: [__meta_kubernetes_service_name]
+          targetLabel: service
+        - sourceLabels: [__meta_kubernetes_service_label_tier]
+          targetLabel: tier
+          regex: (.+)
+        - sourceLabels: [tier]
+          regex: ^$
+          targetLabel: tier
+          replacement: unknown
+          action: replace
+        - targetLabel: cluster
+          replacement: kind-luxecart

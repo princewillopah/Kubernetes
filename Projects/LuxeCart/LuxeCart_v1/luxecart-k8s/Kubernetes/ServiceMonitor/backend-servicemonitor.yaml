@@ -1,0 +1,52 @@
+# backend-servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: luxecart-backend
+  namespace: luxe-observability
+  labels:
+    release: prometheus  # Must match Prometheus selector
+spec:
+  # Select services by namespace + label existence (simplest)
+  selector:
+    matchExpressions:
+      - key: app
+        operator: Exists
+  namespaceSelector:
+    matchNames:
+      - luxe-backend
+  endpoints:
+    - port: http  # Must match a port NAME in your service spec
+      # OR use targetPort if port names don't match:
+      # targetPort: 3000
+      interval: 15s
+      path: /metrics
+      scheme: http
+      # Relabelings for endpoint-based discovery
+      relabelings:
+        # Set namespace from endpoint metadata
+        - sourceLabels: [__meta_kubernetes_namespace]
+          targetLabel: namespace
+        # Set service name
+        - sourceLabels: [__meta_kubernetes_service_name]
+          targetLabel: service
+        # Set tier from SERVICE label (critical: use service_label, not pod_label)
+        - sourceLabels: [__meta_kubernetes_service_label_tier]
+          targetLabel: tier
+          regex: (.+)
+          action: replace
+        # Fallback: if tier is empty, set to "unknown"
+        - sourceLabels: [tier]
+          regex: ^$
+          targetLabel: tier
+          replacement: unknown
+          action: replace
+        # Set cluster
+        - targetLabel: cluster
+          replacement: kind-luxecart
+        # Set pod name from endpoint target
+        - sourceLabels: [__meta_kubernetes_endpoint_address_target_name]
+          targetLabel: pod
+        # Set app from service label
+        - sourceLabels: [__meta_kubernetes_service_label_app]
+          targetLabel: app

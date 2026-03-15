@@ -7,6 +7,9 @@ metadata:
     prometheus.io/scrape: "true"
     prometheus.io/port: "3008"
     prometheus.io/path: "/metrics"
+  labels:
+    app: payment-service
+    tier: business-logic
 spec:
   selector:
     app: payment-service

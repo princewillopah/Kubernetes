@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-exporter
+  namespace: luxe-infra
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb-exporter
+  template:
+    metadata:
+      labels:
+        app: mongodb-exporter
+    spec:
+      containers:
+      - name: mongodb-exporter
+        image: percona/mongodb_exporter:0.40
+        args:
+        - --mongodb.uri=mongodb://mongodb.luxe-infra.svc.cluster.local:27017
+        - --mongodb.direct-connect=true
+        - --discovering-mode
+        - --compatible-mode
+        ports:
+        - containerPort: 9216

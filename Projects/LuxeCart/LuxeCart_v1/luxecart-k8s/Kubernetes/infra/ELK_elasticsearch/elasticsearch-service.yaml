@@ -3,10 +3,6 @@ kind: Service
 metadata:
   name: elasticsearch
   namespace: luxe-infra
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "9200"
-    prometheus.io/path: "/metrics"
   labels:
     app: elasticsearch
     tier: monitoring

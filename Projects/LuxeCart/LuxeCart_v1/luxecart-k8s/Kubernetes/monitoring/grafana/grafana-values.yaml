@@ -1,0 +1,81 @@
+replicaCount: 1
+adminUser: admin
+adminPassword: admin
+
+persistence:
+  enabled: true
+  storageClassName: standard
+  size: 5Gi
+  accessModes:
+    - ReadWriteOnce
+
+service:
+  type: ClusterIP
+  port: 3000
+
+plugins:
+  - redis-datasource
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-server.luxe-observability.svc.cluster.local:9090
+        isDefault: true
+        editable: true
+        jsonData:
+          timeInterval: 15s
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki-gateway.luxe-observability.svc.cluster.local:80
+        editable: true
+        jsonData:
+          maxLines: 1000
+
+# Option A: Keep this ONLY if you add extraVolumes for dashboards-dir
+# dashboardProviders:
+#   dashboardproviders.yaml:
+#     apiVersion: 1
+#     providers:
+#       - name: 'LuxeCart Dashboards'
+#         orgId: 1
+#         folder: ''
+#         type: file
+#         disableDeletion: false
+#         updateIntervalSeconds: 10
+#         allowUiUpdates: true
+#         options:
+#           path: /var/lib/grafana/dashboards
+
+dashboards: {}
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+livenessProbe:
+  httpGet:
+    path: /api/health
+    port: 3000
+  initialDelaySeconds: 60
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 3
+readinessProbe:
+  httpGet:
+    path: /api/health
+    port: 3000
+  initialDelaySeconds: 60
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+defaultDashboardsEnabled: false

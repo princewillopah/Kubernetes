@@ -7,6 +7,9 @@ metadata:
     prometheus.io/scrape: "true"
     prometheus.io/port: "3000"
     prometheus.io/path: "/metrics"
+  labels:
+    app: api-gateway-service
+    tier: gateway
 spec:
   selector:
     app: api-gateway-service
