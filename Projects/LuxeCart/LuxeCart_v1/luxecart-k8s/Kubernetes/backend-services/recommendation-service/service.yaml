@@ -3,10 +3,6 @@ kind: Service
 metadata:
   name: recommendation-service
   namespace: luxe-backend
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "3014"
-    prometheus.io/path: "/metrics"
   labels:
     app: recommendation-service
     tier: business-logic
@@ -14,6 +10,7 @@ spec:
   selector:
     app: recommendation-service
   ports:
-  - port: 3014
-    targetPort: 3014
+    - name: metrics
+      port: 3014
+      targetPort: 3014
   type: ClusterIP

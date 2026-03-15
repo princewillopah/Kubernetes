@@ -3,10 +3,6 @@ kind: Service
 metadata:
   name: cart-service
   namespace: luxe-backend
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "3004"
-    prometheus.io/path: "/metrics"
   labels:
     app: cart-service
     tier: business-logic
@@ -14,6 +10,7 @@ spec:
   selector:
     app: cart-service
   ports:
-  - port: 3004
-    targetPort: 3004
+    - name: metrics
+      port: 3004
+      targetPort: 3004
   type: ClusterIP

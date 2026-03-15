@@ -3,10 +3,6 @@ kind: Service
 metadata:
   name: rating-service
   namespace: luxe-backend
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "3007"
-    prometheus.io/path: "/metrics"
   labels:
     app: rating-service
     tier: business-logic
@@ -14,6 +10,7 @@ spec:
   selector:
     app: rating-service
   ports:
-  - port: 3007
-    targetPort: 3007
+    - name: metrics
+      port: 3007
+      targetPort: 3007
   type: ClusterIP

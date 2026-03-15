@@ -3,10 +3,6 @@ kind: Service
 metadata:
   name: notification-service
   namespace: luxe-backend
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "3009"
-    prometheus.io/path: "/metrics"
   labels:
     app: notification-service
     tier: business-logic
@@ -14,6 +10,7 @@ spec:
   selector:
     app: notification-service
   ports:
-  - port: 3009
-    targetPort: 3009
+    - name: metrics
+      port: 3009
+      targetPort: 3009
   type: ClusterIP

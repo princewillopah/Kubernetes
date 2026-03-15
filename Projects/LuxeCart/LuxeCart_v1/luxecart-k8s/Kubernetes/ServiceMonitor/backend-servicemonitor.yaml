@@ -5,18 +5,19 @@ metadata:
   name: luxecart-backend
   namespace: luxe-observability
   labels:
-    release: prometheus  # Must match Prometheus selector
+    release: prometheus  # Must match Prometheus selector | if you use the prometheus-community/prometheus Helm chart, the value of release = prometheus. if you use prometheus-community/kube-prometheus-stack then the value is prometheus-kube-prometheus-stack. if you use a different chart or custom installation, adjust this label to match your Prometheus configuration.
 spec:
-  # Select services by namespace + label existence (simplest)
   selector:
     matchExpressions:
       - key: app
         operator: Exists
+
   namespaceSelector:
     matchNames:
       - luxe-backend
+      
   endpoints:
-    - port: http  # Must match a port NAME in your service spec
+    - port: metrics  # Must match a port NAME in your service spec - # MUST match the service port name
       # OR use targetPort if port names don't match:
       # targetPort: 3000
       interval: 15s

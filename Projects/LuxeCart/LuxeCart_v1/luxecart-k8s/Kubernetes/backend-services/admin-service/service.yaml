@@ -3,10 +3,6 @@ kind: Service
 metadata:
   name: admin-service
   namespace: luxe-backend
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "3010"
-    prometheus.io/path: "/metrics"
   labels:
     app: admin-service
     tier: business-logic
@@ -14,6 +10,7 @@ spec:
   selector:
     app: admin-service
   ports:
-  - port: 3010
-    targetPort: 3010
+    - name: metrics
+      port: 3010
+      targetPort: 3010
   type: ClusterIP

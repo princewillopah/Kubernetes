@@ -3,10 +3,6 @@ kind: Service
 metadata:
   name: payment-service
   namespace: luxe-backend
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "3008"
-    prometheus.io/path: "/metrics"
   labels:
     app: payment-service
     tier: business-logic
@@ -14,6 +10,7 @@ spec:
   selector:
     app: payment-service
   ports:
-  - port: 3008
-    targetPort: 3008
+    - name: metrics
+      port: 3008
+      targetPort: 3008
   type: ClusterIP

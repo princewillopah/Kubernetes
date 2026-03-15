@@ -3,10 +3,6 @@ kind: Service
 metadata:
   name: email-service
   namespace: luxe-backend
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "3015"
-    prometheus.io/path: "/metrics"
   labels:
     app: email-service
     tier: business-logic
@@ -14,6 +10,7 @@ spec:
   selector:
     app: email-service
   ports:
-  - port: 3015
-    targetPort: 3015
+    - name: metrics
+      port: 3015
+      targetPort: 3015
   type: ClusterIP

@@ -1,0 +1,19 @@
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: loki-ingress
+#   namespace: luxe-observability
+# spec:
+#   ingressClassName: nginx
+
+#   rules:
+#   - host: loki.luxecart.local
+#     http:
+#       paths:
+#       - path: /
+#         pathType: Prefix
+#         backend:
+#           service:
+#             name: loki-gateway
+#             port:
+#               number: 3100

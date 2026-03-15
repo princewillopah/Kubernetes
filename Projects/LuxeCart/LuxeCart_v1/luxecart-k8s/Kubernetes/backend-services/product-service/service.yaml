@@ -3,10 +3,6 @@ kind: Service
 metadata:
   name: product-service
   namespace: luxe-backend
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "3003"
-    prometheus.io/path: "/metrics"
   labels:
     app: product-service
     tier: business-logic
@@ -14,6 +10,7 @@ spec:
   selector:
     app: product-service
   ports:
-  - port: 3003
-    targetPort: 3003
+    - name: metrics
+      port: 3003
+      targetPort: 3003
   type: ClusterIP

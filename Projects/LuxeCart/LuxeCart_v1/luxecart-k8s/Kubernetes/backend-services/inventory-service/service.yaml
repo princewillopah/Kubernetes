@@ -3,10 +3,6 @@ kind: Service
 metadata:
   name: inventory-service
   namespace: luxe-backend
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "3011"
-    prometheus.io/path: "/metrics"
   labels:
     app: inventory-service
     tier: business-logic
@@ -14,6 +10,7 @@ spec:
   selector:
     app: inventory-service
   ports:
-  - port: 3011
-    targetPort: 3011
+    - name: metrics
+      port: 3011
+      targetPort: 3011
   type: ClusterIP
