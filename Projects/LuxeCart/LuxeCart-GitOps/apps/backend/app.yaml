@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: backend
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: luxe-backend
+  source:
+    repoURL: https://github.com/YOUR_REPO/luxe-gitops
+    targetRevision: HEAD
+    path: charts/backend
+    helm:
+      valueFiles:
+        - ../../environments/kind/backend-values.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

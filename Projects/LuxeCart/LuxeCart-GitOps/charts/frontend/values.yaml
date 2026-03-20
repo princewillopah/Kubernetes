@@ -1,0 +1,52 @@
+namespaceFrontend: luxe-frontend
+
+frontend:
+  enabled: true
+
+  name: frontend
+
+  image: princewillopah2/luxecart-frontend:1.0.6
+  imagePullPolicy: Always
+  replicas: 1
+
+  ports:
+    - name: http
+      containerPort: 80
+      servicePort: 80
+
+    - name: nginx-status
+      containerPort: 8080
+      servicePort: 8080
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+  readinessProbe:
+    path: /
+    port: 80
+    initialDelaySeconds: 40
+    periodSeconds: 30
+    timeoutSeconds: 25
+    failureThreshold: 15
+
+  livenessProbe:
+    path: /
+    port: 80
+    initialDelaySeconds: 40
+    periodSeconds: 30
+    timeoutSeconds: 25
+    failureThreshold: 15
+
+  service:
+    type: ClusterIP
+
+  ingress:
+    enabled: false   # true in EKS
+    className: alb
+    annotations: {}
+    host: app.luxecart.com

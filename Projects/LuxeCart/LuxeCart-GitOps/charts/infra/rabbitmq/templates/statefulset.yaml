@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq
+  namespace: {{ .Values.namespace }}
+
+spec:
+  serviceName: rabbitmq-headless
+  replicas: {{ .Values.rabbitmq.replicas }}
+
+  selector:
+    matchLabels:
+      app: rabbitmq
+
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+
+    spec:
+      securityContext:
+        fsGroup: 1000
+
+      containers:
+        - name: rabbitmq
+          image: {{ .Values.rabbitmq.image }}
+
+          ports:
+            - containerPort: {{ .Values.rabbitmq.ports.amqp }}
+              name: amqp
+            - containerPort: {{ .Values.rabbitmq.ports.management }}
+              name: management
+            - containerPort: {{ .Values.rabbitmq.ports.metrics }}
+              name: metrics
+
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.rabbitmq.auth.existingSecret }}
+                  key: {{ .Values.rabbitmq.auth.usernameKey }}
+
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.rabbitmq.auth.existingSecret }}
+                  key: {{ .Values.rabbitmq.auth.passwordKey }}
+
+          volumeMounts:
+            - name: rabbitmq-storage
+              mountPath: /var/lib/rabbitmq
+
+            {{- if .Values.rabbitmq.config.enabled }}
+            - name: rabbitmq-config
+              mountPath: /etc/rabbitmq/rabbitmq.conf
+              subPath: rabbitmq.conf
+            {{- end }}
+
+            {{- if .Values.rabbitmq.plugins.enabled }}
+            - name: rabbitmq-plugins
+              mountPath: /etc/rabbitmq/enabled_plugins
+              subPath: enabled_plugins
+            {{- end }}
+
+          readinessProbe:
+            exec:
+              command:
+                - rabbitmq-diagnostics
+                - -q
+                - ping
+
+          livenessProbe:
+            exec:
+              command:
+                - rabbitmq-diagnostics
+                - -q
+                - ping
+
+          resources:
+            {{- toYaml .Values.rabbitmq.resources | nindent 12 }}
+
+      volumes:
+        {{- if .Values.rabbitmq.config.enabled }}
+        - name: rabbitmq-config
+          configMap:
+            name: {{ .Values.rabbitmq.config.existingConfigMap }}
+        {{- end }}
+
+        {{- if .Values.rabbitmq.plugins.enabled }}
+        - name: rabbitmq-plugins
+          configMap:
+            name: {{ .Values.rabbitmq.plugins.existingConfigMap }}
+        {{- end }}
+
+  volumeClaimTemplates:
+    - metadata:
+        name: rabbitmq-storage
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.rabbitmq.persistence.size }}

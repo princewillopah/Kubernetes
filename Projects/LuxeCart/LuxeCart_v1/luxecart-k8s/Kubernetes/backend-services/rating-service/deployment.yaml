@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: rating-service
-        image: princewillopah2/luxecart-rating-service:1.0.5
+        image: princewillopah2/luxecart-rating-service:1.0.6
         imagePullPolicy: Always
         ports:
         - containerPort: 3007

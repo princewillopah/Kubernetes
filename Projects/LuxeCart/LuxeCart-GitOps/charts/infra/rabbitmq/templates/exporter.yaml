@@ -1,0 +1,21 @@
+{{- if .Values.exporter.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-metrics
+  namespace:  {{ .Values.namespace }}
+  labels:
+    app: rabbitmq
+    tier: monitoring
+    
+spec:
+  selector:
+    app: rabbitmq
+  ports:
+  - name: metrics
+    port: 15692
+    targetPort: 15692
+{{- end }}
+# RabbitMQ exposes metrics without an exporter using the Prometheus plugin. The metrics are available at http://rabbitmq:15692/metrics. This service allows Prometheus to scrape those metrics directly from the RabbitMQ pod.  
+# This service exposes RabbitMQ metrics for Prometheus to scrape.
+# http://rabbitmq:15692/metrics

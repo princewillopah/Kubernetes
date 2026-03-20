@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: kibana
+
+spec:
+  replicas: {{ .Values.kibana.replicas }}
+
+  selector:
+    matchLabels:
+      app: kibana
+
+  template:
+    metadata:
+      labels:
+        app: kibana
+
+    spec:
+      securityContext:
+        fsGroup: 1000
+
+      containers:
+        - name: kibana
+          image: {{ .Values.kibana.image }}
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+
+          ports:
+            - containerPort: 5601
+
+          env:
+            - name: ELASTICSEARCH_HOSTS
+              value: {{ .Values.kibana.elasticsearch.host }}
+
+          resources:
+            {{- toYaml .Values.kibana.resources | nindent 12 }}
+
+          readinessProbe:
+            httpGet:
+              path: /api/status
+              port: 5601
+            initialDelaySeconds: 40
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 5
+
+          livenessProbe:
+            httpGet:
+              path: /api/status
+              port: 5601
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 10
+            failureThreshold: 5

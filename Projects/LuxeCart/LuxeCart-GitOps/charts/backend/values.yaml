@@ -1,0 +1,19 @@
+namespace: luxe-backend
+
+global:
+  environment: dev
+
+ingress:
+  enabled: false
+
+hpa:
+  enabled: false
+
+pdb:
+  enabled: false
+
+serviceAccount:
+  create: true
+  name: ""
+
+services: {}

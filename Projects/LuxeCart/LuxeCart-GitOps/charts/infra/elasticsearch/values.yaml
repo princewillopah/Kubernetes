@@ -1,0 +1,26 @@
+namespace: luxe-infra
+
+elasticsearch:
+  image: elasticsearch:8.13.4
+  replicas: 1
+
+  heap: "512m"
+
+  security:
+    enabled: false   # matches your current setup
+
+  persistence:
+    size: 5Gi
+    storageClass: ""   # kind-safe, override in EKS
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+
+exporter:
+  enabled: true
+  image: quay.io/prometheuscommunity/elasticsearch-exporter:v1.6.0

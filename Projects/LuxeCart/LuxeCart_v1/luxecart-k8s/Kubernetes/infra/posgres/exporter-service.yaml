@@ -3,11 +3,6 @@ kind: Service
 metadata:
   name: postgres-exporter
   namespace: luxe-infra
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/exporter: "true"
-    prometheus.io/port: "9187"
-    prometheus.io/path: "/metrics"
   labels:
     app: postgres-exporter
     tier: monitoring

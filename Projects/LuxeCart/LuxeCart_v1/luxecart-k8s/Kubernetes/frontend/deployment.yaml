@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: princewillopah2/luxecart-frontend:1.0.5
+        image: princewillopah2/luxecart-frontend:1.0.6
         imagePullPolicy: Always
 
         ports:

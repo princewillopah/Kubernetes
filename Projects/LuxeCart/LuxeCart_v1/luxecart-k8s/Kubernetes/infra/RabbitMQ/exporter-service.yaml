@@ -3,11 +3,6 @@ kind: Service
 metadata:
   name: rabbitmq-metrics
   namespace: luxe-infra
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/exporter: "true"
-    prometheus.io/port: "15692"
-    prometheus.io/path: "/metrics"
   labels:
     app: rabbitmq
     tier: monitoring

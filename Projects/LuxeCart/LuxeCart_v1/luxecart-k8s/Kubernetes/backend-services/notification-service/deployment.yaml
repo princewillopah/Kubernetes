@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: notification-service
-        image: princewillopah2/luxecart-notification-service:1.0.5
+        image: princewillopah2/luxecart-notification-service:1.0.6
         imagePullPolicy: Always
         ports:
         - containerPort: 3009

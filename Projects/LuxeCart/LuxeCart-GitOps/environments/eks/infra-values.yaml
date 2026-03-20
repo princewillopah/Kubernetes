@@ -1,0 +1,29 @@
+postgresql:
+  auth:
+    username: postgres
+    password: postgres
+    database: luxe
+
+redis:
+  auth:
+    enabled: false
+
+rabbitmq:
+  auth:
+    username: guest
+    password: guest
+
+mongodb:
+  replicas: 1
+  persistence:
+      size: 5Gi
+      storageClass: "gp3"   # EKS-specific, override in kind if needed
+
+elasticsearch:
+  replicas: 1
+  persistence:
+      size: 5Gi
+      storageClass: "gp3"   # kind-safe, override in EKS
+
+
+

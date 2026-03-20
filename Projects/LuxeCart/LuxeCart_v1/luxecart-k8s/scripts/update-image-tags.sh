@@ -5,7 +5,7 @@ BASE_DIR="../Kubernetes/backend-services"
 
 if [ $# -ne 1 ]; then
   echo "Usage: ./update-image-tags.sh <new-version>"
-  echo "Example: ./update-image-tags.sh 1.0.5"
+  echo "Example: ./update-image-tags.sh 1.0.6"
   exit 1
 fi
 

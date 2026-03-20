@@ -1,0 +1,12 @@
+migration:
+  enabled: true
+
+  image: flyway/flyway:10
+
+  db:
+    existingSecret: postgres-app-secret   # NOT postgres root secret
+    urlKey: FLYWAY_URL
+    userKey: FLYWAY_USER
+    passwordKey: FLYWAY_PASSWORD
+
+  backoffLimit: 5

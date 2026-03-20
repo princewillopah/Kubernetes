@@ -1,0 +1,769 @@
+services:
+  # Admin Service
+  admin-service:
+      image: princewillopah2/luxecart-admin-service:1.0.6
+      imagePullPolicy: Always
+      port: 3010
+      replicas: 1
+
+      env:
+        - name: DATABASE_URL
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: DATABASE_URL
+
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 100m
+          memory: 256Mi
+
+      readinessProbe:
+        path: /health
+        initialDelaySeconds: 40
+        periodSeconds: 30
+        timeoutSeconds: 25
+        failureThreshold: 15
+
+      livenessProbe:
+        path: /health
+        initialDelaySeconds: 40
+        periodSeconds: 30
+        timeoutSeconds: 25
+        failureThreshold: 15
+      
+      # service configuration
+      portName: metrics
+      serviceType: ClusterIP
+      labels:
+        tier: business-logic
+
+  # API Gateway Service
+  api-gateway-service:
+    image: princewillopah2/luxecart-api-gateway-service:1.0.6
+    imagePullPolicy: Always
+    port: 3000
+    replicas: 1
+
+    env:
+      - name: JWT_SECRET
+        secretKeyRef:
+          name: luxecart-auth-secrets
+          key: JWT_SECRET
+      - name: REDIS_URL
+        secretKeyRef:
+          name: luxecart-auth-secrets
+          key: REDIS_URL
+      - name: RABBITMQ_URL
+        secretKeyRef:
+          name: luxecart-auth-secrets
+          key: RABBITMQ_URL
+
+    envFrom:
+      - configMapRef: api-gateway-config
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+
+    readinessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+
+    livenessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+      
+      # service configuration
+      portName: metrics
+      serviceType: ClusterIP
+      labels:
+        tier: business-logic
+
+
+  # Analytics Service
+  analytics-service:
+      image: princewillopah2/luxecart-analytics-service:1.0.6
+      imagePullPolicy: Always
+      port: 3013
+      replicas: 1
+
+      env:
+        - name: DATABASE_URL
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: DATABASE_URL
+
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 100m
+          memory: 256Mi
+
+      readinessProbe:
+        path: /health
+        initialDelaySeconds: 40
+        periodSeconds: 30
+        timeoutSeconds: 25
+        failureThreshold: 15
+
+      livenessProbe:
+        path: /health
+        initialDelaySeconds: 40
+        periodSeconds: 30
+        timeoutSeconds: 25
+        failureThreshold: 15
+      
+      # service configuration
+      portName: metrics
+      serviceType: ClusterIP
+      labels:
+        tier: business-logic
+
+
+
+  # Auth Service
+  auth-service:
+    image: princewillopah2/luxecart-auth-service:1.0.6
+    imagePullPolicy: Always
+    port: 3001
+    replicas: 1
+
+    env:
+      - name: JWT_SECRET
+        secretKeyRef:
+          name: luxecart-auth-secrets
+          key: JWT_SECRET
+      - name: REDIS_URL
+        secretKeyRef:
+          name: luxecart-auth-secrets
+          key: REDIS_URL
+      - name: RABBITMQ_URL
+        secretKeyRef:
+          name: luxecart-auth-secrets
+          key: RABBITMQ_URL
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+
+    readinessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+
+    livenessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+      
+      # service configuration
+      portName: metrics
+      serviceType: ClusterIP
+      labels:
+        tier: business-logic
+
+
+
+  # Cart Service
+  cart-service:
+    image: princewillopah2/luxecart-cart-service:1.0.6
+    imagePullPolicy: Always
+    port: 3004
+    replicas: 1
+
+    env:
+      - name: DATABASE_URL
+        secretKeyRef:
+          name: luxecart-auth-secrets
+          key: DATABASE_URL
+      - name: REDIS_URL
+        secretKeyRef:
+          name: luxecart-auth-secrets
+          key: REDIS_URL
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+
+    readinessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+
+    livenessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+      
+      # service configuration
+      portName: metrics
+      serviceType: ClusterIP
+      labels:
+        tier: business-logic
+
+
+  # Email Service
+  email-service:
+    image: princewillopah2/luxecart-email-service:1.0.6
+    imagePullPolicy: Always
+    port: 3015
+    replicas: 1
+
+    env:
+      - name: PORT
+        value: "3015"
+      - name: SMTP_HOST
+        value: "smtp.gmail.com"
+      - name: SMTP_PORT
+        value: "587"
+      - name: SMTP_USER
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: SMTP_USER
+      - name: SMTP_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: SMTP_PASSWORD
+      - name: FROM_EMAIL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: FROM_EMAIL
+      - name: MONGODB_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: MONGODB_URL
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: DATABASE_URL
+      - name: RABBITMQ_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: RABBITMQ_URL
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+
+    readinessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+
+    livenessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+      
+      # service configuration
+      portName: metrics
+      serviceType: ClusterIP
+      labels:
+        tier: business-logic
+
+
+  # Inventory Service
+  inventory-service:
+    image: princewillopah2/luxecart-inventory-service:1.0.6
+    imagePullPolicy: Always
+    port: 3011
+    replicas: 1
+
+    env:
+      - name: LOW_STOCK_THRESHOLD
+        value: "10"
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: DATABASE_URL
+      - name: RABBITMQ_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: RABBITMQ_URL
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+
+    readinessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+
+    livenessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+      
+      # service configuration
+      portName: metrics
+      serviceType: ClusterIP
+      labels:
+        tier: business-logic
+
+
+  # Notification Service
+  notification-service:
+    image: princewillopah2/luxecart-notification-service:1.0.6
+    imagePullPolicy: Always
+    port: 3009
+    replicas: 1 
+    env:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: DATABASE_URL
+      - name: RABBITMQ_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: RABBITMQ_URL
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+    readinessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+
+    livenessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+      
+      # service configuration
+      portName: metrics
+      serviceType: ClusterIP
+      labels:
+        tier: business-logic
+
+
+  # order-service:
+  order-service:
+    image: princewillopah2/luxecart-order-service:1.0.6
+    imagePullPolicy: Always
+    port: 3005
+    replicas: 1
+    env:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: DATABASE_URL
+      - name: RABBITMQ_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: RABBITMQ_URL
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+    readinessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+
+    livenessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+      
+      # service configuration
+      portName: metrics
+      serviceType: ClusterIP
+      labels:
+        tier: business-logic
+
+  # Payment Service
+  payment-service:
+    image: princewillopah2/luxecart-payment-service:1.0.6
+    imagePullPolicy: Always
+    port: 3008
+    replicas: 1
+    env:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: DATABASE_URL
+      - name: RABBITMQ_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: RABBITMQ_URL
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+    readinessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+
+    livenessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+      
+      # service configuration
+      portName: metrics
+      serviceType: ClusterIP
+      labels:
+        tier: business-logic
+
+
+
+  # product-service:
+  product-service:
+    image: princewillopah2/luxecart-product-service:1.0.6
+    imagePullPolicy: Always
+    port: 3003
+    replicas: 1
+    env:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: DATABASE_URL
+      - name: REDIS_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: REDIS_URL
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+    readinessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+
+    livenessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+      
+      # service configuration
+      portName: metrics
+      serviceType: ClusterIP
+      labels:
+        tier: business-logic
+
+
+  # rating-service:
+  rating-service:
+    image: princewillopah2/luxecart-rating-service:1.0.6
+    imagePullPolicy: Always
+    port: 3007
+    replicas: 1
+    env:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: DATABASE_URL
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+    readinessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+
+    livenessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+      
+      # service configuration
+      portName: metrics
+      serviceType: ClusterIP
+      labels:
+        tier: business-logic
+
+
+  # recommendation-service:
+  recommendation-service:
+    image: princewillopah2/luxecart-recommendation-service:1.0.6
+    imagePullPolicy: Always
+    port: 3014
+    replicas: 1
+    env:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: DATABASE_URL
+      - name: REDIS_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: REDIS_URL
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+    readinessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+
+    livenessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+      
+      # service configuration
+      portName: metrics
+      serviceType: ClusterIP
+      labels:
+        tier: business-logic
+
+  # review-service:
+  review-service:
+    image: princewillopah2/luxecart-review-service:1.0.6
+    imagePullPolicy: Always
+    port: 3006
+    replicas: 1
+    env:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: DATABASE_URL
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+    readinessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+
+    livenessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+      
+      # service configuration
+      portName: metrics
+      serviceType: ClusterIP
+      labels:
+        tier: business-logic
+
+  # Search Service
+  search-service:
+    image: princewillopah2/luxecart-search-service:1.0.6
+    imagePullPolicy: Always
+    port: 3012
+    replicas: 1
+    env:
+      - name: ELASTICSEARCH_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: ELASTICSEARCH_URL
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: DATABASE_URL
+      - name: RABBITMQ_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: RABBITMQ_URL
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+    readinessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+
+    livenessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+      
+      # service configuration
+      portName: metrics
+      serviceType: ClusterIP
+      labels:
+        tier: business-logic
+
+
+  # User Service
+  user-service:
+    image: princewillopah2/luxecart-user-service:1.0.6
+    imagePullPolicy: Always
+    port: 3002
+    replicas: 1
+    env:
+      - name: JWT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: JWT_SECRET
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: DATABASE_URL
+      - name: RABBITMQ_URL
+        valueFrom:
+          secretKeyRef:
+            name: luxecart-auth-secrets
+            key: RABBITMQ_URL
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 100m
+        memory: 256Mi
+    readinessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+
+    livenessProbe:
+      path: /health
+      initialDelaySeconds: 40
+      periodSeconds: 30
+      timeoutSeconds: 25
+      failureThreshold: 15
+      
+      # service configuration
+      portName: metrics
+      serviceType: ClusterIP
+      labels:
+        tier: business-logic
+
+ingress:
+  enabled: false
+
+hpa:
+  enabled: false
+
+pdb:
+  enabled: false

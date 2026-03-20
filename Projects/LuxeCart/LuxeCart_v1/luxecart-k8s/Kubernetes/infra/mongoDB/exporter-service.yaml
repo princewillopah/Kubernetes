@@ -3,11 +3,6 @@ kind: Service
 metadata:
   name: mongodb-exporter
   namespace: luxe-infra
-  annotations:
-    prometheus.io/scrape: "true"
-    prometheus.io/exporter: "true"
-    prometheus.io/port: "9216"
-    prometheus.io/path: "/metrics"
   labels:
     app: mongodb-exporter
     tier: monitoring

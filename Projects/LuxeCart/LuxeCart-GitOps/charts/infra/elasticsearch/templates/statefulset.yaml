@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch
+  namespace: {{ .Values.namespace }}
+
+spec:
+  serviceName: elasticsearch-headless
+  replicas: {{ .Values.elasticsearch.replicas }}
+
+  selector:
+    matchLabels:
+      app: elasticsearch
+
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+
+    spec:
+      securityContext:
+        fsGroup: 1000
+
+      containers:
+        - name: elasticsearch
+          image: {{ .Values.elasticsearch.image }}
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+
+          ports:
+            - containerPort: 9200
+              name: http
+
+          env:
+            - name: discovery.type
+              value: single-node
+
+            - name: xpack.security.enabled
+              value: "{{ .Values.elasticsearch.security.enabled }}"
+
+            - name: ES_JAVA_OPTS
+              value: "-Xms{{ .Values.elasticsearch.heap }} -Xmx{{ .Values.elasticsearch.heap }}"
+
+          volumeMounts:
+            - name: elasticsearch-data
+              mountPath: /usr/share/elasticsearch/data
+
+          readinessProbe:
+            httpGet:
+              path: /_cluster/health
+              port: 9200
+            initialDelaySeconds: 60
+            timeoutSeconds: 10
+            periodSeconds: 30
+            failureThreshold: 5
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9200
+            initialDelaySeconds: 60
+            timeoutSeconds: 10
+            periodSeconds: 20
+            failureThreshold: 5
+
+          resources:
+            {{- toYaml .Values.elasticsearch.resources | nindent 12 }}
+
+  volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        {{- if .Values.elasticsearch.persistence.storageClass }}
+        storageClassName: {{ .Values.elasticsearch.persistence.storageClass }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.elasticsearch.persistence.size }}

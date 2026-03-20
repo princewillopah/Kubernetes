@@ -1,0 +1,94 @@
+{{- range $name, $svc := .Values.services }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Values.namespace }}
+  labels:
+    app: {{ $name }}
+spec:
+  replicas: {{ $svc.replicas }}
+
+  selector:
+    matchLabels:
+      app: {{ $name }}
+
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+
+    spec:
+      serviceAccountName: {{ default "luxecart-sa" $.Values.serviceAccount.name }}
+
+      securityContext:
+        fsGroup: 2000
+
+      containers:
+        - name: {{ $name }}
+          image: "{{ $svc.image }}"
+          imagePullPolicy: {{ default "IfNotPresent" $svc.imagePullPolicy }}
+
+          ports:
+            - containerPort: {{ $svc.port }}
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+
+          {{- if $svc.env }}
+          env:
+            {{- range $svc.env }}
+            - name: {{ .name }}
+              {{- if .value }}
+              value: {{ .value | quote }}
+              {{- else if .secretKeyRef }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .secretKeyRef.name }}
+                  key: {{ .secretKeyRef.key }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+
+          {{- if $svc.envFrom }}
+          envFrom:
+            {{- range $svc.envFrom }}
+            - configMapRef:
+                name: {{ .configMapRef }}
+            {{- end }}
+          {{- end }}
+
+          resources:
+            requests:
+              cpu: {{ $svc.resources.requests.cpu }}
+              memory: {{ $svc.resources.requests.memory }}
+            limits:
+              cpu: {{ $svc.resources.limits.cpu }}
+              memory: {{ $svc.resources.limits.memory }}
+
+          {{- if $svc.readinessProbe }}
+          readinessProbe:
+            httpGet:
+              path: {{ $svc.readinessProbe.path }}
+              port: {{ $svc.port }}
+            initialDelaySeconds: {{ $svc.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ $svc.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ $svc.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ $svc.readinessProbe.failureThreshold }}
+          {{- end }}
+
+          {{- if $svc.livenessProbe }}
+          livenessProbe:
+            httpGet:
+              path: {{ $svc.livenessProbe.path }}
+              port: {{ $svc.port }}
+            initialDelaySeconds: {{ $svc.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ $svc.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ $svc.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ $svc.livenessProbe.failureThreshold }}
+          {{- end }}
+
+---
+{{- end }}

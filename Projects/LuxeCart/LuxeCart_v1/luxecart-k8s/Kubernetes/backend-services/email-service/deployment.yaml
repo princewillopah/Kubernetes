@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: email-service
-        image: princewillopah2/luxecart-email-service:1.0.5
+        image: princewillopah2/luxecart-email-service:1.0.6
         imagePullPolicy: Always
         ports:
         - containerPort: 3015

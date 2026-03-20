@@ -1,0 +1,26 @@
+namespace: luxe-infra
+
+kibana:
+  image: kibana:8.13.4
+  replicas: 1
+
+  elasticsearch:
+    host: http://elasticsearch:9200   # FIXED (cluster DNS safe)
+
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+
+  service:
+    type: ClusterIP
+    port: 5601
+
+  ingress:
+    enabled: false   # kind-safe
+    className: alb
+    annotations: {}
+    host: kibana.luxecart.com
