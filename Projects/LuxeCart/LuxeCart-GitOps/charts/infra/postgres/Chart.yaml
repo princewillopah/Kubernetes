@@ -1,5 +1,0 @@
-apiVersion: v2
-name: postgres
-description: PostgreSQL StatefulSet with exporter
-type: application
-version: 1.0.0

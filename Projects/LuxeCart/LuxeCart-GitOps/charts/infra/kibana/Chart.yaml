@@ -1,5 +1,0 @@
-apiVersion: v2
-name: kibana
-description: Kibana visualization for Elasticsearch
-type: application
-version: 1.0.0

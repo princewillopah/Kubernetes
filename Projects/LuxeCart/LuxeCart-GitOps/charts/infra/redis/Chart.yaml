@@ -1,5 +1,0 @@
-apiVersion: v2
-name: redis
-description: Redis StatefulSet with exporter
-type: application
-version: 1.0.0
