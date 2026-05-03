@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: luxecart-frontend
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: luxe-frontend
+  source:
+    repoURL: git@github.com:princewillopah/LuxeCart-GitOps.git
+    targetRevision: main
+    path: charts/frontend
+    # helm:
+    #   valueFiles:
+    #     - ../../environments/kind/frontend/values.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      # - CreateNamespace=true
+      - PruneLast=true # Optional: prune resources last

@@ -1,0 +1,94 @@
+{{- $defaults := .Values.defaults }}
+{{- range $name, $svc := .Values.services }}
+{{- $resources := default $defaults.resources $svc.resources }}
+{{- $rp := default $defaults.readinessProbe $svc.readinessProbe }}
+{{- $lp := default $defaults.livenessProbe $svc.livenessProbe }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  namespace: {{ $.Values.namespace }}
+  labels:
+    app: {{ $name }}
+spec:
+  replicas: {{ $svc.replicas }}
+
+  selector:
+    matchLabels:
+      app: {{ $name }}
+
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+
+    spec:
+      serviceAccountName: {{ default "luxecart-sa" $.Values.serviceAccount.name }}
+
+      # securityContext:
+      #   fsGroup: 2000
+      #   runAsUser: 1000
+      #   runAsGroup: 1000
+      containers:
+        - name: {{ $name }}
+          image: "{{ $svc.image }}"
+          imagePullPolicy: {{ default "IfNotPresent" $svc.imagePullPolicy }}
+
+          ports:
+            - containerPort: {{ $svc.port }}
+
+          # securityContext:
+          #   runAsNonRoot: true
+          #   allowPrivilegeEscalation: false
+
+          {{- if $svc.env }}
+          env:
+            {{- range $svc.env }}
+            - name: {{ .name }}
+              {{- if .value }}
+              value: {{ .value | quote }}
+              {{- else if .secretKeyRef }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .valueFrom.secretKeyRef.name }}
+                  key: {{ .valueFrom.secretKeyRef.key }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+
+          {{- if $svc.envFrom }}
+          envFrom:
+            {{- range $svc.envFrom }}
+            - configMapRef:
+                name: {{ .configMapRef }}
+            {{- end }}
+          {{- end }}
+
+          resources:
+            requests:
+              cpu: {{ default $defaults.resources.requests.cpu $resources.requests.cpu }}
+              memory: {{ default $defaults.resources.requests.memory $resources.requests.memory }}
+            limits:
+              cpu: {{ default $defaults.resources.limits.cpu $resources.limits.cpu }}
+              memory: {{ default $defaults.resources.limits.memory $resources.limits.memory }}
+
+          readinessProbe:
+            httpGet:
+              path: {{ $rp.path }}
+              port: {{ $svc.port }}
+            initialDelaySeconds: {{ $rp.initialDelaySeconds }}
+            periodSeconds: {{ $rp.periodSeconds }}
+            timeoutSeconds: {{ $rp.timeoutSeconds }}
+            failureThreshold: {{ $rp.failureThreshold }}
+
+          livenessProbe:
+            httpGet:
+              path: {{ $lp.path }}
+              port: {{ $svc.port }}
+            initialDelaySeconds: {{ $lp.initialDelaySeconds }}
+            periodSeconds: {{ $lp.periodSeconds }}
+            timeoutSeconds: {{ $lp.timeoutSeconds }}
+            failureThreshold: {{ $lp.failureThreshold }}
+
+---
+{{- end }}

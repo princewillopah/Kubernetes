@@ -1,0 +1,38 @@
+prometheus:
+  service:
+    type: NodePort
+    nodePort: 30090
+
+prometheusSpec:
+  retention: 7d
+
+  additionalScrapeConfigs:
+    name: prometheus-additional-scrape-configs
+    key: additional-scrape-configs.yaml
+
+  serviceMonitorSelector:
+    matchLabels:
+      release: prometheus
+
+  serviceMonitorNamespaceSelector:
+    matchNames:
+      - luxe-observability
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+  storageSpec:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: standard
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
+
+  scrapeInterval: 15s

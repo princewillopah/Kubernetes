@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-headless
+  namespace: {{ .Values.namespace }}
+
+spec:
+  clusterIP: None
+
+  selector:
+    app: rabbitmq
+
+  ports:
+    - name: amqp
+      port: {{ .Values.rabbitmq.ports.amqp }}

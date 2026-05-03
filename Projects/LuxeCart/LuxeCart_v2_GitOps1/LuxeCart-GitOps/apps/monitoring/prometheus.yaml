@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: luxecart-prometheus
+  namespace: argocd
+spec:
+  project: default
+
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 58.0.0
+      helm:
+        valueFiles:
+          - $values/environments/dev/monitoring/prometheus/values.yaml 
+
+
+    - repoURL: git@github.com:princewillopah/LuxeCart-GitOps.git
+      targetRevision: main
+      ref: values
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: luxe-observability
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true   # 🔴 FIX FOR CRDs

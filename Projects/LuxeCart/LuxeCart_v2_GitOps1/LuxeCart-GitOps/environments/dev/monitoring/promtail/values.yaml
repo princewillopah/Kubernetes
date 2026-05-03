@@ -1,0 +1,63 @@
+daemonset:
+  enabled: true
+
+config:
+  logLevel: info
+
+  clients:
+    - url: http://loki.luxe-observability.svc.cluster.local:3100/loki/api/v1/push
+
+  positions:
+    filename: /run/promtail/positions.yaml
+
+  snippets:
+    scrapeConfigs: |
+      - job_name: kubernetes-pods
+
+        pipeline_stages:
+          - cri: {}
+
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - luxe-backend
+                - luxe-frontend
+                - luxe-infra
+                - luxe-observability
+
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_phase]
+            action: keep
+            regex: Running
+
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            target_label: container
+
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            target_label: app
+
+          - target_label: cluster
+            replacement: kind-luxecart
+
+          - source_labels:
+              - __meta_kubernetes_namespace
+              - __meta_kubernetes_pod_name
+              - __meta_kubernetes_pod_uid
+              - __meta_kubernetes_pod_container_name
+            separator: _
+            regex: (.*)_(.*)_(.*)_(.*)
+            replacement: /var/log/pods/${1}_${2}_${3}/${4}/*.log
+            target_label: __path__
+
+serviceMonitor:
+  enabled: true
+
+tolerations:
+  - operator: Exists

@@ -1,0 +1,11 @@
+migration:
+  enabled: true
+  image: flyway/flyway:10
+
+  db:
+    secretName: flyway-auth-secret
+    urlKey: FLYWAY_URL
+    userKey: FLYWAY_USER
+    passwordKey: FLYWAY_PASSWORD
+
+  backoffLimit: 3

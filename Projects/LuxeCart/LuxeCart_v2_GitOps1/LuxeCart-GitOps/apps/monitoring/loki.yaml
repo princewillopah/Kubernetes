@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: luxecart-loki
+  namespace: argocd
+
+spec:
+  project: default
+  sources:
+    - repoURL: https://grafana.github.io/helm-charts
+      chart: loki
+      targetRevision: 6.*
+      helm:
+          releaseName: loki
+          valueFiles:
+            - $values/environments/dev/monitoring/loki/values.yaml 
+
+
+    - repoURL: git@github.com:princewillopah/LuxeCart-GitOps.git
+      targetRevision: main
+      ref: values
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: luxe-observability
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true

@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: luxecart-promtail
+  namespace: argocd
+
+spec:
+  project: default
+
+  sources:
+    - repoURL: https://grafana.github.io/helm-charts
+      chart: promtail
+      targetRevision: 6.*
+      helm:
+          valueFiles:
+            - $values/environments/dev/monitoring/promtail/values.yaml 
+    
+    - repoURL: git@github.com:princewillopah/LuxeCart-GitOps.git
+      targetRevision: main
+      ref: values
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: luxe-observability
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      
+    syncOptions:
+      - CreateNamespace=true

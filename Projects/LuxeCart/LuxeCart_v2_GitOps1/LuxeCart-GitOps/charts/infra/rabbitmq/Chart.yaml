@@ -1,0 +1,5 @@
+apiVersion: v2
+name: rabbitmq
+description: RabbitMQ StatefulSet with management and metrics
+type: application
+version: 1.0.0

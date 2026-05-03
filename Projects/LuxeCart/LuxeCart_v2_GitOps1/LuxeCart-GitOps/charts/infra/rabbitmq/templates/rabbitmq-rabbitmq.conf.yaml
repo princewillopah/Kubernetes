@@ -1,0 +1,17 @@
+# Create ConfigMap:
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-config
+  namespace:  {{ .Values.namespace }}
+data:
+  rabbitmq.conf: |
+    loopback_users.guest = false
+    listeners.tcp.default = 5672
+    management.tcp.port = 15672
+    prometheus.tcp.port = 15692
+    prometheus.path = /metrics
+    prometheus.return_per_object_metrics = true
+    vm_memory_high_watermark.relative = 0.4
+
+

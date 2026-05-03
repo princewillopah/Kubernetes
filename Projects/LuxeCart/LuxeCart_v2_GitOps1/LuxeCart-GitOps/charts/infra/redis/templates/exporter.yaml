@@ -1,0 +1,51 @@
+{{- if .Values.exporter.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-exporter
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-exporter
+
+  template:
+    metadata:
+      labels:
+        app: redis-exporter
+
+    spec:
+      containers:
+        - name: redis-exporter
+          image: {{ .Values.exporter.image }}
+
+          env:
+            - name: REDIS_ADDR
+              value: redis:6379
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.redis.auth.secretName }}
+                  key: {{ .Values.redis.auth.passwordKey }}
+
+          ports:
+            - containerPort: 9121
+              name: metrics
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-exporter
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: redis-exporter
+    tier: monitoring
+spec:
+  selector:
+    app: redis-exporter
+  ports:
+    - name: metrics
+      port: 9121
+      targetPort: 9121
+{{- end }}

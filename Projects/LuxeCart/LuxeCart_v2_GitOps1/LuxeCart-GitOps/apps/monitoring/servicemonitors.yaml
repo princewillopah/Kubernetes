@@ -1,0 +1,59 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: luxecart-backend
+  namespace: luxe-observability
+  labels:
+    release: luxecart-prometheus   # 🔴 FIXED
+spec:
+  selector:
+    matchExpressions:
+      - key: app
+        operator: Exists
+  namespaceSelector:
+    matchNames:
+      - luxe-backend
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: luxecart-frontend
+  namespace: luxe-observability
+  labels:
+    release: luxecart-prometheus
+spec:
+  selector:
+    matchExpressions:
+      - key: app
+        operator: Exists
+  namespaceSelector:
+    matchNames:
+      - luxe-frontend
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: luxecart-infra
+  namespace: luxe-observability
+  labels:
+    release: luxecart-prometheus
+spec:
+  selector:
+    matchExpressions:
+      - key: app
+        operator: Exists
+  namespaceSelector:
+    matchNames:
+      - luxe-infra
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 15s

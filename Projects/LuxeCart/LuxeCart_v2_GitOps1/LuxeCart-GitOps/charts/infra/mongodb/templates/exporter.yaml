@@ -1,0 +1,64 @@
+{{- if .Values.exporter.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-exporter
+  namespace: {{ .Values.namespace }}
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb-exporter
+
+  template:
+    metadata:
+      labels:
+        app: mongodb-exporter
+
+    spec:
+      containers:
+        - name: mongodb-exporter
+          image: {{ .Values.exporter.image }}
+
+          args:
+            - --mongodb.uri=mongodb://$(MONGO_USER):$(MONGO_PASS)@mongodb:27017
+            - --mongodb.direct-connect=true
+            - --discovering-mode
+            - --compatible-mode
+
+          env:
+            - name: MONGO_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mongodb.auth.secretName }}
+                  key: {{ .Values.mongodb.auth.usernameKey }}
+
+            - name: MONGO_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mongodb.auth.secretName }}
+                  key: {{ .Values.mongodb.auth.passwordKey }}
+
+          ports:
+            - containerPort: 9216
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb-exporter
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: mongodb-exporter
+    tier: monitoring
+
+spec:
+  selector:
+    app: mongodb-exporter
+
+  ports:
+    - name: metrics
+      port: 9216
+      targetPort: 9216
+{{- end }}

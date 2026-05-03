@@ -1,0 +1,34 @@
+namespace: luxe-infra
+
+postgres:
+  image: postgres:16-alpine
+  replicas: 1
+
+  auth:
+    secretName: postgres-secret
+    userKey: POSTGRES_USER
+    passwordKey: POSTGRES_PASSWORD
+    dbKey: POSTGRES_DB
+
+  securityContext:
+    fsGroup: 999
+    runAsUser: 999
+    runAsGroup: 999
+
+  persistence:
+    size: 5Gi
+    storageClass: ""   # empty = default (kind safe)
+
+  resources:
+    requests:
+      cpu: 150m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+exporter:
+  enabled: true
+  image: prometheuscommunity/postgres-exporter:v0.15.0
+  secretName: flaway-auth-secret
+  dsnKey: POSTGRES_DB_URL

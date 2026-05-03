@@ -1,0 +1,17 @@
+redis:
+  enabled: true
+
+postgres:
+  enabled: true
+
+rabbitmq:
+  enabled: true
+
+mongodb:
+  enabled: true
+
+elasticsearch:
+  enabled: true
+
+kibana:
+  enabled: true

@@ -1,0 +1,25 @@
+namespace: luxe-infra
+
+redis:
+  image: redis:7-alpine
+  replicas: 1
+
+  auth:
+    secretName: redis-secret
+    passwordKey: REDIS_PASSWORD
+
+  persistence:
+    enabled: true
+    size: 5Gi
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+exporter:
+  enabled: true
+  image: oliver006/redis_exporter:v1.55.0

@@ -1,0 +1,26 @@
+namespace: luxe-infra
+
+mongodb:
+  image: mongo:7.0
+  replicas: 1
+
+  auth:
+    secretName: mongodb-secret
+    usernameKey: MONGO_INITDB_ROOT_USERNAME
+    passwordKey: MONGO_INITDB_ROOT_PASSWORD
+
+  persistence:
+    size: 10Gi
+    storageClass: ""
+
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+
+exporter:
+  enabled: true
+  image: percona/mongodb_exporter:0.40

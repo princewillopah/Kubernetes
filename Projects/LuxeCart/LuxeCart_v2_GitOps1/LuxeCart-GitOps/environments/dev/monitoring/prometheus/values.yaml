@@ -1,0 +1,87 @@
+prometheus:
+  service:
+    type: NodePort
+    nodePort: 30090
+
+prometheusSpec:
+  retention: 7d
+
+  # 🔴 FIX: allow all ServiceMonitors
+  serviceMonitorSelector: {}
+  serviceMonitorNamespaceSelector: {}
+
+  podMonitorSelector: {}
+  podMonitorNamespaceSelector: {}
+
+  additionalScrapeConfigs:
+    name: prometheus-additional-scrape-configs
+    key: additional-scrape-configs.yaml
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+
+  storageSpec:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: standard
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 5Gi
+
+  scrapeInterval: 15s
+  evaluationInterval: 15s
+
+
+
+# //////// GRAFANA ////////////////
+
+grafana:
+  enabled: true
+
+  adminUser: admin
+  adminPassword: admin123
+
+  persistence:
+    enabled: true
+    storageClassName: standard
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  plugins:
+    - redis-datasource
+
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      access: proxy
+      url: http://loki:3100
+      editable: true
+
+  # datasources:
+  #   datasources.yaml:
+  #     apiVersion: 1
+  #     datasources:
+  #       - name: Prometheus
+  #         type: prometheus
+  #         access: proxy
+  #         url: http://luxecart-prometheus-kube-p-prometheus:9090
+  #         isDefault: true
+
+  #       - name: Loki
+  #         type: loki
+  #         access: proxy
+  #         url: http://loki:3100
+
+  defaultDashboardsEnabled: true
+

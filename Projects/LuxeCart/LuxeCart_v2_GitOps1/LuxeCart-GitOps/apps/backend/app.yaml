@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: luxecart-backend
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "3" # Ensure backend resources are applied after secrets
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: luxe-backend
+  source:
+    repoURL: git@github.com:princewillopah/LuxeCart-GitOps.git
+    targetRevision: main
+    path: charts/backend
+    helm:
+      valueFiles:
+        - ../../environments/dev/backend/values.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      # - CreateNamespace=true
+      - PruneLast=true # Optional: prune resources last

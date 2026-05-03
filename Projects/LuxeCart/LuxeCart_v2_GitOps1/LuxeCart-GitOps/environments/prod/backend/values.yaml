@@ -1,0 +1,314 @@
+
+services:
+  # Admin Service
+  admin-service:
+      image: princewillopah2/luxecart-admin-service:1.0.10
+      replicas: 3
+      env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: postgres-connection
+              key: DATABASE_URL
+
+  # API Gateway Service
+  api-gateway-service:
+    image: princewillopah2/luxecart-api-gateway-service:1.0.10
+    replicas: 3
+    env:
+      - name: JWT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: jwt-auth-secret
+            key: JWT_SECRET
+      - name: REDIS_URL
+        valueFrom:
+          secretKeyRef:
+            name: redis-connection
+            key: REDIS_URL
+      - name: RABBITMQ_URL
+        valueFrom:
+          secretKeyRef:
+            name: rabbitmq-connection
+            key: RABBITMQ_URL
+    envFrom:
+      - configMapRef: api-gateway-config
+
+  # Analytics Service
+  analytics-service:
+      image: princewillopah2/luxecart-analytics-service:1.0.10
+      replicas: 3
+      env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: postgres-connection
+              key: DATABASE_URL
+
+
+  # Auth Service
+  auth-service:
+    image: princewillopah2/luxecart-auth-service:1.0.10
+    replicas: 3
+    env:
+      - name: JWT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: jwt-auth-secret
+            key: JWT_SECRET
+      - name: REDIS_URL
+        valueFrom:
+          secretKeyRef:
+            name: redis-connection
+            key: REDIS_URL
+      - name: RABBITMQ_URL
+        valueFrom:
+          secretKeyRef:
+            name: rabbitmq-connection
+            key: RABBITMQ_URL
+
+
+  # Cart Service
+  cart-service:
+    image: princewillopah2/luxecart-cart-service:1.0.10
+    replicas: 3
+    env:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: postgres-connection
+            key: DATABASE_URL
+      - name: REDIS_URL
+        valueFrom:
+          secretKeyRef:
+            name: redis-connection
+            key: REDIS_URL
+
+
+  # Email Service
+  email-service:
+    image: princewillopah2/luxecart-email-service:1.0.10
+    replicas: 3
+    env:
+      - name: PORT
+        value: "3015"
+      - name: SMTP_HOST
+        value: "smtp.gmail.com"
+      - name: SMTP_PORT
+        value: "587"
+      - name: SMTP_USER
+        valueFrom:
+          secretKeyRef:
+            name: email-secrets
+            key: SMTP_USER
+      - name: SMTP_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: email-secrets
+            key: SMTP_PASSWORD
+      - name: FROM_EMAIL
+        valueFrom:
+          secretKeyRef:
+            name: email-secrets
+            key: FROM_EMAIL
+      - name: MONGODB_URL
+        valueFrom:
+          secretKeyRef:
+            name: mongodb-connection
+            key: MONGODB_URL
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: postgres-connection
+            key: DATABASE_URL
+      - name: RABBITMQ_URL
+        valueFrom:
+          secretKeyRef:
+            name: rabbitmq-connection
+            key: RABBITMQ_URL
+
+
+  # Inventory Service
+  inventory-service:
+    image: princewillopah2/luxecart-inventory-service:1.0.10
+    replicas: 3
+    env:
+      - name: LOW_STOCK_THRESHOLD
+        value: "10"
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: postgres-connection
+            key: DATABASE_URL
+      - name: RABBITMQ_URL
+        valueFrom:
+          secretKeyRef:
+            name: rabbitmq-connection
+            key: RABBITMQ_URL
+
+
+  # Notification Service
+  notification-service:
+    image: princewillopah2/luxecart-notification-service:1.0.10
+    replicas: 3 
+    env:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: postgres-connection
+            key: DATABASE_URL
+      - name: RABBITMQ_URL
+        valueFrom:
+          secretKeyRef:
+            name: rabbitmq-connection
+            key: RABBITMQ_URL
+
+  # order-service:
+  order-service:
+    image: princewillopah2/luxecart-order-service:1.0.10
+    replicas: 3
+    env:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: postgres-connection
+            key: DATABASE_URL
+      - name: RABBITMQ_URL
+        valueFrom:
+          secretKeyRef:
+            name: rabbitmq-connection
+            key: RABBITMQ_URL
+
+  # Payment Service
+  payment-service:
+    image: princewillopah2/luxecart-payment-service:1.0.10
+    replicas: 3
+    env:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: postgres-connection
+            key: DATABASE_URL
+      - name: RABBITMQ_URL
+        valueFrom:
+          secretKeyRef:
+            name: rabbitmq-connection
+            key: RABBITMQ_URL
+
+  # product-service:
+  product-service:
+    image: princewillopah2/luxecart-product-service:1.0.10
+    replicas: 3
+    env:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: postgres-connection
+            key: DATABASE_URL
+      - name: REDIS_URL
+        valueFrom:
+          secretKeyRef:
+            name: redis-connection
+            key: REDIS_URL
+
+  # rating-service:
+  rating-service:
+    image: princewillopah2/luxecart-rating-service:1.0.10
+    replicas: 3
+    env:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: postgres-connection
+            key: DATABASE_URL
+
+  # recommendation-service:
+  recommendation-service:
+    image: princewillopah2/luxecart-recommendation-service:1.0.10
+    replicas: 3
+    env:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: postgres-connection
+            key: DATABASE_URL
+      - name: REDIS_URL
+        valueFrom:
+          secretKeyRef:
+            name: redis-connection
+            key: REDIS_URL
+
+  # review-service:
+  review-service:
+    image: princewillopah2/luxecart-review-service:1.0.10
+    replicas: 3
+    env:
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: postgres-connection
+            key: DATABASE_URL
+
+  # Search Service
+  search-service:
+    image: princewillopah2/luxecart-search-service:1.0.10
+    replicas: 3
+    env:
+      - name: ELASTICSEARCH_URL
+        valueFrom:
+          secretKeyRef:
+            name: elasticsearch-connection
+            key: ELASTICSEARCH_URL
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: postgres-connection
+            key: DATABASE_URL
+      - name: RABBITMQ_URL
+        valueFrom:
+          secretKeyRef:
+            name: rabbitmq-connection
+            key: RABBITMQ_URL
+
+  # User Service
+  user-service:
+    image: princewillopah2/luxecart-user-service:1.0.10
+    replicas: 3
+    env:
+      - name: JWT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: jwt-auth-secret
+            key: JWT_SECRET
+      - name: DATABASE_URL
+        valueFrom:
+          secretKeyRef:
+            name: postgres-connection
+            key: DATABASE_URL
+      - name: RABBITMQ_URL
+        valueFrom:
+          secretKeyRef:
+            name: rabbitmq-connection
+            key: RABBITMQ_URL
+
+
+ingress:
+  enabled: true
+  className: alb
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+  hosts:
+    - host: api.luxecart.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+hpa:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 30
+  targetCPUUtilizationPercentage: 70
+
+pdb:
+  enabled: true
+  minAvailable: 1
