@@ -1,1 +1,0 @@
-both LuxeCart-App-build-Pipeline LuxeCart-GitOps should be two different repos
